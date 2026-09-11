@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0b0f19"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Cabecera -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IPS SENSOR &amp; GUÍA ESCOLAR"
+            android:textColor="#38bdf8"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08" />
+
+        <TextView
+            android:id="@+id/tvCurrentFloor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Piso --"
+            android:textColor="#ffffff"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp" />
+
+        <!-- Barra de Configuración de Servidor IP -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#1e293b"
+            android:padding="12dp"
+            android:layout_marginTop="12dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvServerInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Servidor: No configurado"
+                    android:textColor="#f8fafc"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvConnectionStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="● Desconectado"
+                    android:textColor="#ef4444"
+                    android:textSize="11sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnConfigServer"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="Cambiar IP"
+                android:textSize="11sp"
+                android:backgroundTint="#0284c7"
+                android:textColor="#ffffff"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp" />
+        </LinearLayout>
+
+        <!-- Tarjeta de Pista Activa -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#111827"
+            android:padding="20dp"
+            android:layout_marginTop="16dp"
+            android:elevation="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PISTA DE NAVEGACIÓN"
+                android:textColor="#9ca3af"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvActiveClue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Buscando señales Wi-Fi en el edificio..."
+                android:textColor="#ffffff"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp" />
+
+            <ProgressBar
+                android:id="@+id/progressBarNav"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:progress="0"
+                android:max="100"
+                android:progressTint="#06b6d4"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:id="@+id/tvDistance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Calculando distancia..."
+                android:textColor="#38bdf8"
+                android:textSize="14sp"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/tvAttendanceStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Estado: ABSENT"
+                android:textColor="#fbbf24"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Botón alternador de modo calibrador -->
+        <Button
+            android:id="@+id/btnToggleCalibrator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Modo Calibrador (Offline)"
+            android:backgroundTint="#374151"
+            android:textColor="#ffffff"
+            android:layout_marginTop="20dp" />
+
+        <!-- Panel Desplegable de Calibración -->
+        <LinearLayout
+            android:id="@+id/layoutCalibrator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#1f2937"
+            android:padding="16dp"
+            android:visibility="gone"
+            android:layout_marginTop="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HERRAMIENTA DE CALIBRACIÓN DE HUELAS"
+                android:textColor="#34d399"
+                android:textStyle="bold"
+                android:textSize="12sp" />
+
+            <EditText
+                android:id="@+id/etRpId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="ID del Punto (ej. RP_P3_S302)"
+                android:textColor="#ffffff"
+                android:textColorHint="#9ca3af"
+                android:layout_marginTop="8dp" />
+
+            <Spinner
+                android:id="@+id/spinnerFloor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/tvSampleCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Muestras recolectadas: 0 / 15"
+                android:textColor="#9ca3af"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnTakeSample"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Capturar Muestra RSSI"
+                android:backgroundTint="#0284c7"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnUploadCalibration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enviar Huella al Servidor"
+                android:backgroundTint="#059669"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estación de Salón - IPS & Asistencia IoT</title>
+  <link rel="stylesheet" href="css/station.css">
+</head>
+<body>
+
+  <!-- Barra Superior / Header de Estación -->
+  <header class="station-header">
+    <div class="header-brand">
+      <span class="brand-badge">IPS Estación</span>
+      <h1 id="roomTitle" style="font-size: 1.4rem; font-weight: 800;">Aula S302</h1>
+    </div>
+
+    <div class="room-selector-group">
+      <label for="roomSelect" style="font-size: 0.85rem; color: var(--text-secondary);">Cambiar Aula:</label>
+      <select id="roomSelect" class="room-select">
+        <optgroup label="Piso 1">
+          <option value="S101">Salón 101</option>
+          <option value="S102">Salón 102</option>
+          <option value="S103">Salón 103</option>
+        </optgroup>
+        <optgroup label="Piso 2">
+          <option value="S201">Salón 201</option>
+          <option value="S202">Salón 202</option>
+          <option value="S203">Salón 203</option>
+        </optgroup>
+        <optgroup label="Piso 3">
+          <option value="S301">Salón 301</option>
+          <option value="S302" selected>Salón 302 (Demo)</option>
+          <option value="S303">Salón 303</option>
+        </optgroup>
+        <optgroup label="Piso 4">
+          <option value="S401">Salón 401</option>
+          <option value="S402">Salón 402</option>
+          <option value="S403">Salón 403</option>
+        </optgroup>
+      </select>
+
+      <div class="connection-pill">
+        <span id="statusDot" class="status-dot"></span>
+        <span id="statusText">Conectando...</span>
+        <span id="latencyBadge" style="color: var(--accent-cyan); font-family: monospace; font-size: 0.75rem;">--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Métricas Rápidas -->
+  <section class="metrics-container">
+    <div class="metric-card">
+      <div class="metric-title">Matriculados</div>
+      <div id="metricEnrolled" class="metric-value" style="color: #94a3b8;">--</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Presentes Confirmados</div>
+      <div id="metricConfirmed" class="metric-value" style="color: var(--accent-green);">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">En Aproximación</div>
+      <div id="metricApproaching" class="metric-value" style="color: var(--accent-blue);">0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Tasa de Asistencia</div>
+      <div id="metricRate" class="metric-value" style="color: var(--accent-cyan);">0%</div>
+    </div>
+  </section>
+
+  <!-- Barra de Pruebas y Simulación Rápida de Auditoría -->
+  <section class="simulation-bar">
+    <div style="font-size: 0.85rem; font-weight: 600; color: #c7d2fe;">
+      ⚡ Banco de Auditoría & Simulación en Vivo (Laptop):
+    </div>
+    <div class="btn-group">
+      <button id="btnSimApproaching" class="btn btn-primary">1. Simular Aproximación</button>
+      <button id="btnSimDoor" class="btn btn-warning">2. Simular En Puerta</button>
+      <button id="btnSimConfirm" class="btn btn-success">3. Confirmar Asistencia</button>
+      <button id="btnResetRoom" class="btn btn-outline">Reiniciar Asistencia</button>
+    </div>
+  </section>
+
+  <!-- Grid Principal: Radar + Tabla de Asistencia -->
+  <main class="dashboard-grid">
+    <!-- Panel Izquierdo: Radar Sonar de Proximidad -->
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <div class="card-panel-title">
+          <span>📡</span> Radar de Proximidad Wi-Fi
+        </div>
+      </div>
+      <div class="radar-container">
+        <canvas id="radarCanvas"></canvas>
+      </div>
+      <div id="lastStudentTelemetry" class="radar-telemetry">
+        Esperando telemetría de sensores móviles...
+      </div>
+    </div>
+
+    <!-- Panel Derecho: Lista de Alumnos del Salón -->
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <div class="card-panel-title">
+          <span>👥</span> Padrón de Asistencia del Aula
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th>ID Estudiante</th>
+              <th>Nombre Completo</th>
+              <th>Estado</th>
+              <th>Último RSSI</th>
+              <th>Hora Marcado</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTableBody">
+            <!-- Renderizado dinámico vía station_app.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Panel Inferior: Consola de Auditoría en Vivo -->
+  <section class="audit-panel">
+    <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; color: #e2e8f0; display: flex; align-items: center; gap: 0.5rem;">
+      <span>📝</span> Registro de Auditoría de Presencia (Auditable):
+    </div>
+    <ul id="auditList" class="audit-log-list">
+      <li>[SISTEMA] Estación iniciada en modo de escucha de eventos WebSocket...</li>
+    </ul>
+  </section>
+
+  <script type="module" src="js/station_app.js"></script>
+</body>
+</html>

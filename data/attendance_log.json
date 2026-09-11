@@ -1,0 +1,122 @@
+[
+  {
+    "student_id": "EST_01",
+    "student_name": "Antony Mendoza",
+    "room_id": "S101",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_02",
+    "student_name": "Valeria Gómez",
+    "room_id": "S102",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_03",
+    "student_name": "Carlos Quispe",
+    "room_id": "S103",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_04",
+    "student_name": "Lucía Morales",
+    "room_id": "S201",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_05",
+    "student_name": "Mateo Flores",
+    "room_id": "S202",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_06",
+    "student_name": "Sofía Vargas",
+    "room_id": "S203",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_07",
+    "student_name": "Alejandro Silva",
+    "room_id": "S301",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_08",
+    "student_name": "Diego Ramos (Demo Player)",
+    "room_id": "S302",
+    "status": "AT_DOOR",
+    "last_seen": 1789138003.3684552,
+    "confirmed_at": null,
+    "last_rssi": -48.0,
+    "samples_in_window": 1
+  },
+  {
+    "student_id": "EST_09",
+    "student_name": "Camila Castro",
+    "room_id": "S303",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_10",
+    "student_name": "Joaquín Herrera",
+    "room_id": "S401",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_11",
+    "student_name": "Renata Paredes",
+    "room_id": "S402",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_12",
+    "student_name": "Gabriel Medina",
+    "room_id": "S403",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  }
+]
