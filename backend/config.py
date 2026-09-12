@@ -29,8 +29,24 @@ def _resolve_data_path(env_var: str, relative_path: str) -> str:
 
 @dataclass(frozen=True)
 class WKNNConfig:
-    """Configuración para el algoritmo Weighted k-Nearest Neighbors."""
-    k: int = 3
+    """
+    Configuración para el algoritmo Weighted k-Nearest Neighbors.
+
+    Elección de k
+    -------------
+    `k = 2` es el valor que minimiza el error medio (1.70 m frente a 2.03 m de k=3) y el RMSE
+    en la validación LOOCV, y además acota mejor la cola del error, que es lo que importa para
+    guiado paso a paso: percentil 90 de 2.74 m frente a 3.33 m. El valor anterior era 3, que
+    contradecía sin explicación al "k=2 óptimo" que publicaba el propio reporte de validación.
+
+    Salvedad: k=3 minimiza la *mediana* (1.82 m), es decir acierta más a menudo aunque falle
+    peor cuando falla, y promediar más vecinos podría resultar más robusto frente al ruido real
+    que el modelo sintético no reproduce. Si alguna vez se dispone de un radio-mapa de campo,
+    conviene repetir el barrido antes de dar por buena esta elección.
+
+    Reproducir: PYTHONPATH=. python calibration_tools/loocv_evaluator.py --seed 42 --repeats 30
+    """
+    k: int = 2
     epsilon: float = 1e-6
     default_absent_rssi: float = -105.0  # RSSI asignado cuando un AP no es detectado
     metric: str = "euclidean"  # 'euclidean' o 'manhattan'

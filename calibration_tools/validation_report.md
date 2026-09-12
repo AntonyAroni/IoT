@@ -136,9 +136,9 @@ Todos los objetivos se cumplen **dentro del marco simulado descrito en §1**.
    estimación hacia el centroide del piso. Ningún valor de k llega a incumplir el objetivo de
    percentil 90 con este dataset, pero la tendencia es inequívoca.
 
-> ⚠️ **Discrepancia pendiente con el código.** `backend/config.py` define `WKNNConfig.k = 3`,
-> no el óptimo k=2 que arroja esta validación. Hay que alinear el valor por defecto o justificar
-> explícitamente la elección.
+> ✅ **Alineado con el código.** `WKNNConfig.k` valía 3, contradiciendo sin explicación al "k=2
+> óptimo" que publicaba este mismo reporte. Desde el 2026-09-12 el valor por defecto es **k = 2**,
+> con la justificación y la salvedad recogidas en el docstring de `backend/config.py`.
 
 ---
 

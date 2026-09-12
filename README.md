@@ -120,7 +120,7 @@ El edificio se representa como un grafo dirigido $G = (V, E)$, donde cada nodo r
 ├── backend/                      # Servidor Central IPS (FastAPI + WebSockets)
 │   ├── config.py                 # Configuración de hiperparámetros (WKNN, umbrales, puertos)
 │   ├── main.py                   # Punto de entrada de la aplicación FastAPI y ruteo
-│   ├── requirements.txt          # Dependencias de Python del proyecto
+│   ├── requirements.txt          # Dependencias del servidor (sin NumPy)
 │   ├── api/                      # Controladores REST y WebSockets
 │   │   ├── routes_attendance.py  # Endpoints de consulta y registro de asistencia
 │   │   ├── routes_building.py    # Información topológica y aulas del edificio
@@ -142,19 +142,25 @@ El edificio se representa como un grafo dirigido $G = (V, E)$, donde cada nodo r
 │   │   ├── navigation_engine.py  # Algoritmo de rutas y generación de pistas
 │   │   └── wknn_locator.py       # Motor de localización continua WKNN
 │   └── tests/                    # Batería de pruebas unitarias automatizadas
-│       ├── test_attendance_logic.py
-│       ├── test_graph_navigation.py
-│       ├── test_websocket_integration.py
-│       └── test_wknn_positioning.py
+│       ├── helpers.py                     # Aísla el estado global para no escribir en data/
+│       ├── test_attendance_logic.py       # Máquina de estados y ventana de permanencia
+│       ├── test_attendance_persistence.py # Recarga desde disco y política de escritura
+│       ├── test_graph_navigation.py       # Dijkstra, pistas de guiado y progreso
+│       ├── test_radio_map_integrity.py    # Integridad del dataset de calibración
+│       ├── test_websocket_integration.py  # Flujo extremo a extremo y validación de IDs
+│       └── test_wknn_positioning.py       # Precisión del WKNN y aislamiento de piso
 ├── calibration_tools/            # Herramientas de calibración, simulación y auditoría
 │   ├── validation_report.md      # Reporte de validación LOOCV (simulación) y limitaciones
+│   ├── requirements.txt          # Dependencias propias de las herramientas (NumPy)
+│   ├── console.py                # Salida UTF-8 segura en consolas cp1252
 │   ├── generate_synthetic_map.py # Generador de radio-mapas bajo modelo log-distance
 │   ├── loocv_evaluator.py        # Evaluador Leave-One-Out Cross-Validation
 │   ├── synthetic_test_suite.py   # Suite de pruebas de estrés bajo diferentes escenarios
-│   └── threshold_tuner.py        # Sintonizador de umbrales RSSI y ventana temporal
+│   └── threshold_tuner.py        # Sintonizador de umbrales RSSI, ventana y radio
 ├── data/                         # Almacenamiento local de datos en formato JSON
-│   ├── attendance_log.json       # Historial persistente de asistencias marcadas
-│   └── radio_map.json            # Base de datos de huellas de señal (Fingerprints)
+│   ├── attendance_log.json       # Padrón y asistencias (se recarga al arrancar)
+│   ├── radio_map.json            # Base de datos de huellas de señal (Fingerprints)
+│   └── field_captures/           # Capturas Wi-Fi reales, con BSSID seudonimizados
 ├── frontend_stations/            # Tablero Web para Laptops de Salón
 │   ├── index.html                # Interfaz principal del aula
 │   ├── css/
@@ -191,7 +197,7 @@ El edificio se representa como un grafo dirigido $G = (V, E)$, donde cada nodo r
 ### Cliente Móvil Android (Opcional para dispositivo físico)
 - **Android Studio Giraffe / Ladybug / Iguana** o superior
 - **JDK 17**
-- Dispositivo Android con **Android 8.0 (API 26) o superior** y soporte Wi-Fi.
+- Dispositivo Android con **Android 7.0 (API 24) o superior** y soporte Wi-Fi (`minSdk 24`, `targetSdk 34`).
 
 ---
 
@@ -215,8 +221,15 @@ python -m venv venv
 ```
 
 ### 3. Instalar Dependencias
+
+Para ejecutar el servidor y la demostración:
 ```bash
 pip install -r backend/requirements.txt
+```
+
+Las herramientas de calibración y validación necesitan además NumPy, que el servidor no usa:
+```bash
+pip install -r calibration_tools/requirements.txt
 ```
 
 ---
@@ -241,16 +254,42 @@ python demo_runner.py
     • URL Servidor: http://127.0.0.1:8000
 ================================================================================
 
+🔄 Asistencia del aula S302 reiniciada para la demostración.
+
 💻 [LAPTOP SALÓN 302]: Conectada exitosamente. Esperando alumnos...
 
 [Paso 1/9] 📱 MÓVIL: Inicio en entrada principal - Piso 1
   📍 Ubicación Real: Piso 1 (2.0m, 5.0m)
-  🧠 Estimación IPS: Piso 1 (2.0m, 5.0m)
-  🗣️ Pista: "Avanza por el pasillo central hacia la escalera."
-  📊 Progreso: 10% | Estado: NOT_REGISTERED
-...
-  💻 [LAPTOP SALÓN 302]: Radar detectó a 'Carlos Mendoza' | Estado: CONFIRMED | Distancia: 0.5m | RSSI: -48.2 dBm
+  🧠 Estimación IPS: Piso 1 (2.0m, 3.77m)
+  🗣️ Pista: "🚶‍♂️ Estás en el Piso 1. Dirígete a la escalera central y sube 2 nivel(es) al Piso 3."
+  📊 Progreso: 0.0% | Estado: ABSENT
+  💻 [LAPTOP SALÓN 302]: Radar detectó a 'Diego Ramos (Demo Player)' | Estado: ABSENT | Distancia: 99.0m | RSSI: -95.0 dBm
+
+[Paso 3/9] 📱 MÓVIL: Subiendo escaleras - Piso 2
+  📍 Ubicación Real: Piso 2 (10.0m, 8.0m)
+  🧠 Estimación IPS: Piso 2 (10.0m, 6.94m)
+  🗣️ Pista: "🚶‍♂️ Estás en el Piso 2. Dirígete a la escalera central y sube 1 nivel(es) al Piso 3."
+  📊 Progreso: 58.6% | Estado: ABSENT
+
+[Paso 4/9] 📱 MÓVIL: Llegando a descanso de escalera - Piso 3
+  📍 Ubicación Real: Piso 3 (10.0m, 8.0m)
+  🧠 Estimación IPS: Piso 3 (10.0m, 6.99m)
+  🗣️ Pista: "📍 Estás en el Piso 3. Avanza en línea recta hacia el Salón 302 (5.0 m)."
+  📊 Progreso: 79.3% | Estado: APPROACHING
+  💻 [LAPTOP SALÓN 302]: Radar detectó a 'Diego Ramos (Demo Player)' | Estado: APPROACHING | Distancia: 4.99m | RSSI: -62.2 dBm
+
+[...]
+
+[Paso 9/9] 📱 MÓVIL: Permanencia validada en S302 (Muestra 3/3 - Confirmado)
+  📍 Ubicación Real: Piso 3 (10.0m, 2.0m)
+  🧠 Estimación IPS: Piso 3 (10.0m, 2.71m)
+  🗣️ Pista: "🎉 ¡Has llegado al Salón 302! Registrando tu asistencia en la estación..."
+  📊 Progreso: 100.0% | Estado: PRESENT_CONFIRMED
+  💻 [LAPTOP SALÓN 302]: Radar detectó a 'Diego Ramos (Demo Player)' | Estado: PRESENT_CONFIRMED | Distancia: 0.71m | RSSI: -40.7 dBm
 ```
+
+> Salida capturada de una ejecución real. Las coordenadas estimadas y los valores de RSSI varían
+> ligeramente entre ejecuciones porque el sensor virtual añade ruido gaussiano a cada escaneo.
 
 ---
 
@@ -261,9 +300,36 @@ Para ejecutar el servidor de manera independiente:
 uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-- Documentación interactiva Swagger UI: **`http://localhost:8000/docs`**
-- Verificación de estado de salud: **`http://localhost:8000/health`**
-- Endpoints REST de asistencia: **`http://localhost:8000/api/attendance/summary`**
+> El servidor resuelve las rutas de datos contra la raíz del proyecto, así que puede arrancarse
+> desde cualquier directorio. Para apuntar a otros ficheros, usa las variables de entorno
+> `IPS_RADIO_MAP_PATH` e `IPS_ATTENDANCE_LOG_PATH`. Si el radio-mapa carga vacío, el arranque lo
+> advierte de forma explícita en el log en lugar de degradarse en silencio.
+
+#### Endpoints disponibles
+
+| Método | Ruta | Descripción |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Estado del servicio, pisos y puntos de referencia cargados |
+| `GET` | `/docs` | Documentación interactiva Swagger UI |
+| `GET` | `/api/v1/building/summary` | Pisos, salones y nodos del grafo |
+| `GET` | `/api/v1/building/rooms` | Todas las aulas con centro, entrada y nodo de acceso |
+| `POST` | `/api/v1/navigation/locate` | Infiere piso y coordenada 2D, y genera la ruta |
+| `GET` | `/api/v1/attendance/room/{room_id}` | Padrón y métricas de asistencia de un aula |
+| `POST` | `/api/v1/attendance/room/{room_id}/reset` | Reinicia la asistencia del aula |
+| `POST` | `/api/v1/calibration/record` | Registra un punto de referencia calibrado |
+| `GET` | `/api/v1/calibration/radio-map` | Descarga el radio-mapa completo |
+| `DELETE` | `/api/v1/calibration/radio-map` | Vacía el radio-mapa en memoria |
+
+Canales WebSocket:
+
+| Ruta | Uso |
+| :--- | :--- |
+| `/ws/laptop/{room_id}` | Estación del aula: recibe eventos de proximidad y asistencia |
+| `/ws/mobile/{student_id}` | Sensor móvil: envía lecturas Wi-Fi y recibe pistas de guiado |
+| `/ws/admin` | Telemetría global para monitoreo y auditoría |
+
+> Los identificadores `room_id` y `student_id` deben cumplir `^[A-Za-z0-9_-]{1,32}$`. El servidor
+> cierra el handshake con el código **4400** si no encajan.
 
 ---
 
@@ -360,7 +426,7 @@ python -m unittest discover backend/tests
 ```text
 ...........
 ----------------------------------------------------------------------
-Ran 11 tests in 0.062s
+Ran 37 tests in 0.101s
 
 OK
 ```

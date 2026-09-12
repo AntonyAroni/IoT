@@ -11,14 +11,14 @@
 | **P0 — Bloqueante** | 4 | 3 ✅ / 1 aplazada | Invalidan métricas publicadas o el propósito del sistema |
 | **P1 — Alto** | 5 | **5 ✅** | Funcionalidad documentada que no existe, o bugs visibles al usuario |
 | **P2 — Medio** | 7 | **7 ✅** | Deuda técnica, build y limpieza |
-| **P3 — Documentación** | 1 | pendiente | Sincronizar README y reporte con el código real |
+| **P3 — Documentación** | 1 | **1 ✅** | Sincronizar README y reporte con el código real |
 
-**Cerrado:** P0-1, P0-2, P0-3, todo P1 y todo P2. El sistema hace lo que su documentación dice,
+**Cerrado:** P0-1, P0-2, P0-3, y todo P1, P2 y P3. El sistema hace lo que su documentación dice,
 las métricas son reproducibles y los bugs visibles al usuario están corregidos.
 
 **Aplazado por decisión del usuario:** P0-4 (autenticación).
 
-**Suite de pruebas:** 11 → **33** pruebas, todas pasando, sin tocar `data/`.
+**Suite de pruebas:** 11 → **37** pruebas, todas pasando, sin tocar `data/`.
 
 > **Nota sobre las cifras de este documento.** Los bloques de resultados de cada tarea recogen lo
 > medido **en el momento de cerrarla**. P2-4 descubrió después que el generador declaraba
@@ -494,7 +494,7 @@ Todos los scripts del proyecto imprimen emojis, así que el riesgo es general.
 
 ## P3 — Documentación
 
-### P3-1 · Sincronizar README y reporte con el código
+### P3-1 · Sincronizar README y reporte con el código — ✅ HECHO (2026-09-12)
 
 **[verificado]** Discrepancias detectadas:
 
@@ -509,12 +509,12 @@ Todos los scripts del proyecto imprimen emojis, así que el riesgo es general.
 
 **Tareas**
 
-- [ ] Corregir la tabla de endpoints del README contra las rutas reales de `backend/api/`.
-- [ ] Alinear `WKNNConfig.k` con el valor que la auditoría determine óptimo, **o** explicar por
+- [x] Corregir la tabla de endpoints del README contra las rutas reales de `backend/api/`.
+- [x] Alinear `WKNNConfig.k` con el valor que la auditoría determine óptimo, **o** explicar por
       qué el valor por defecto difiere del óptimo de LOOCV (p. ej. robustez frente a ruido real).
-- [ ] Regenerar la salida de consola de ejemplo del README ejecutando de verdad `demo_runner.py`
+- [x] Regenerar la salida de consola de ejemplo del README ejecutando de verdad `demo_runner.py`
       y pegando el resultado, en lugar de transcribirlo a mano.
-- [ ] Actualizar la tabla de métricas una vez cerradas P0-1 y P0-2.
+- [x] Actualizar la tabla de métricas una vez cerradas P0-1 y P0-2.
 
 ---
 
