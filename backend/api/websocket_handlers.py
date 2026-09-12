@@ -26,6 +26,20 @@ WS_CLOSE_INVALID_IDENTIFIER = 4400
 def _is_valid_identifier(value: str) -> bool:
     return bool(IDENTIFIER_PATTERN.match(value))
 
+
+async def _reject_identifier(websocket: WebSocket, field: str, value: str) -> None:
+    """
+    Rechaza el handshake informando al cliente del motivo.
+
+    Hay que aceptar la conexión antes de cerrarla: cerrar sin aceptar hace que el servidor
+    responda con un HTTP 403 al handshake, y el código de cierre de aplicación nunca llega al
+    cliente. Aceptando primero, el móvil recibe el 4400 y sabe que reintentar con el mismo
+    identificador no puede funcionar.
+    """
+    logger.warning(f"Rechazada conexión con {field} inválido: {value!r}")
+    await websocket.accept()
+    await websocket.close(code=WS_CLOSE_INVALID_IDENTIFIER, reason=f"{field} inválido")
+
 @router.websocket("/ws/laptop/{room_id}")
 async def ws_laptop_station(websocket: WebSocket, room_id: str):
     """
@@ -37,8 +51,7 @@ async def ws_laptop_station(websocket: WebSocket, room_id: str):
     attendance_repo = app_state.attendance_repo
 
     if not _is_valid_identifier(room_id):
-        logger.warning(f"Rechazada conexión de laptop con room_id inválido: {room_id!r}")
-        await websocket.close(code=WS_CLOSE_INVALID_IDENTIFIER, reason="room_id inválido")
+        await _reject_identifier(websocket, "room_id", room_id)
         return
 
     await manager.connect_laptop(websocket, room_id)
@@ -82,8 +95,7 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
     graph = app_state.graph
 
     if not _is_valid_identifier(student_id):
-        logger.warning(f"Rechazada conexión de móvil con student_id inválido: {student_id!r}")
-        await websocket.close(code=WS_CLOSE_INVALID_IDENTIFIER, reason="student_id inválido")
+        await _reject_identifier(websocket, "student_id", student_id)
         return
 
     await manager.connect_mobile(websocket, student_id)

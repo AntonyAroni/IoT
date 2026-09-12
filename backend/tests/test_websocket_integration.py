@@ -56,5 +56,45 @@ class TestWebSocketIntegration(IsolatedAppStateMixin, unittest.TestCase):
             self.assertEqual(laptop_event["student_id"], "EST_08")
             self.assertIn(laptop_event["status"], ["APPROACHING", "AT_DOOR", "PRESENT_CONFIRMED"])
 
+class TestIdentifierValidation(IsolatedAppStateMixin, unittest.TestCase):
+    """
+    Los identificadores llegan como texto libre en la ruta del WebSocket y acaban en el tablero
+    del aula. El backend los restringe a `^[A-Za-z0-9_-]{1,32}$` y cierra con el código 4400 si
+    no encajan.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.client = TestClient(app)
+
+    def _assert_rejected(self, path: str):
+        """
+        La conexión debe aceptarse y cerrarse de inmediato con 4400.
+
+        Cerrar *sin* aceptar haría que el servidor respondiera con un HTTP 403 al handshake y el
+        código de aplicación nunca llegaría al cliente, que no podría distinguir "identificador
+        inválido" de "servidor caído" y reintentaría en bucle.
+        """
+        with self.client.websocket_connect(path) as ws:
+            message = ws.receive()
+        self.assertEqual(message["type"], "websocket.close")
+        self.assertEqual(message["code"], 4400)
+
+    def test_rejects_student_id_with_markup(self):
+        self._assert_rejected("/ws/mobile/<img src=x onerror=alert(1)>")
+
+    def test_rejects_room_id_with_markup(self):
+        self._assert_rejected("/ws/laptop/<script>")
+
+    def test_rejects_overlong_identifier(self):
+        self._assert_rejected(f"/ws/mobile/{'A' * 33}")
+
+    def test_accepts_a_valid_identifier(self):
+        """Control: un identificador correcto sí debe establecer la sesión."""
+        with self.client.websocket_connect("/ws/laptop/S302") as ws:
+            initial = ws.receive_json()
+        self.assertEqual(initial["event"], "initial_state")
+
+
 if __name__ == "__main__":
     unittest.main()

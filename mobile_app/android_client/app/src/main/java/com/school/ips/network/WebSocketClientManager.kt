@@ -82,26 +82,40 @@ class WebSocketClientManager(
                 isConnected = false
                 handler.post { onStatusChanged(false) }
 
-                // El servidor cierra con 4400 cuando el identificador no cumple su formato.
-                // Reintentar con el mismo identificador no puede funcionar nunca.
-                if (response?.code == WS_CLOSE_INVALID_IDENTIFIER) {
-                    Log.e("WSClient", "El servidor rechazó el identificador '$studentId'. Revísalo en la configuración.")
+                // Un 403 en el handshake también indica rechazo del servidor, no un fallo de red.
+                if (response?.code == HTTP_FORBIDDEN) {
+                    reportRejectedIdentifier("el servidor rechazó el handshake (HTTP 403)")
                     return
                 }
 
                 scheduleReconnect(t.message)
             }
 
+            override fun onClosing(ws: WebSocket, code: Int, reason: String) {
+                // El servidor cierra con 4400 cuando el identificador no cumple su formato.
+                // Reintentar con el mismo valor no puede funcionar nunca.
+                if (code == WS_CLOSE_INVALID_IDENTIFIER) {
+                    isClosedByUser = true   // inhibe la reconexión automática
+                    reportRejectedIdentifier(reason)
+                }
+            }
+
             override fun onClosed(ws: WebSocket, code: Int, reason: String) {
                 isConnected = false
                 handler.post { onStatusChanged(false) }
-                if (code == WS_CLOSE_INVALID_IDENTIFIER) {
-                    Log.e("WSClient", "Identificador rechazado por el servidor: $reason")
-                    return
-                }
+                if (code == WS_CLOSE_INVALID_IDENTIFIER) return
                 scheduleReconnect("cierre remoto ($code)")
             }
         })
+    }
+
+    private fun reportRejectedIdentifier(reason: String) {
+        Log.e(
+            "WSClient",
+            "Identificador '$studentId' rechazado por el servidor: $reason. " +
+                "Revísalo en la configuración; debe cumplir [A-Za-z0-9_-]{1,32}."
+        )
+        handler.post { onStatusChanged(false) }
     }
 
     /** Reintento con retroceso exponencial y tope, en lugar de cada 3 s indefinidamente. */
@@ -167,6 +181,9 @@ class WebSocketClientManager(
     companion object {
         /** Código con el que el backend rechaza un identificador mal formado. */
         private const val WS_CLOSE_INVALID_IDENTIFIER = 4400
+
+        /** Respuesta del handshake si el servidor cierra la conexión sin llegar a aceptarla. */
+        private const val HTTP_FORBIDDEN = 403
 
         private const val INITIAL_RECONNECT_DELAY_MS = 1000L
         private const val MAX_RECONNECT_DELAY_MS = 60_000L

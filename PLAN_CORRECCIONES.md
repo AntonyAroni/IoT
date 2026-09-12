@@ -330,6 +330,12 @@ Conectarse a `/ws/mobile/<img src=x onerror=...>` ejecuta código en la laptop d
 - [x] Validación en el backend: `IDENTIFIER_PATTERN = ^[A-Za-z0-9_-]{1,32}$` aplicada a
       `student_id` **y** a `room_id`; el handshake se cierra con el código 4400 si no encaja.
       Defensa en profundidad, arreglado en ambos lados.
+- [x] **Corrección posterior (2026-09-12).** El rechazo cerraba la conexión *antes* de aceptarla,
+      con lo que uvicorn respondía al handshake con un HTTP 403 y el código 4400 **nunca llegaba
+      al cliente**: el móvil no podía distinguir "identificador inválido" de "servidor caído" y
+      habría reintentado en bucle. Ahora se acepta y se cierra acto seguido con 4400, el cliente
+      Android lo trata en `onClosing` y deja de reintentar. Añadidas 4 pruebas que faltaban: no
+      había ninguna que verificara el rechazo.
 - [x] Revisados `lastStudentTelemetry` y `logAudit()`: ya usaban `textContent`, no eran
       explotables.
 
