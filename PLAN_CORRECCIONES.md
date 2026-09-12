@@ -483,7 +483,9 @@ Todos los scripts del proyecto imprimen emojis, así que el riesgo es general.
       o subir AGP.
 - [x] `AndroidManifest.xml` conserva `package="com.school.ips"`, atributo que AGP 8 eliminó; el
       `namespace` ya está declarado en `app/build.gradle`. Quitar el atributo del manifiesto.
-- [ ] Ejecutar `./gradlew assembleDebug` y dejar constancia del resultado en el README.
+- [x] Ejecutar `./gradlew assembleDebug` y dejar constancia del resultado en el README. → BUILD
+      SUCCESSFUL con JDK 21 (JetBrains Runtime de Android Studio), Gradle 8.9 y AGP 8.7.3; APK de
+      6.07 MB. Configuración y salida documentadas en el README.
 - [x] `demo_runner.py` define `start_server()` **dos veces**; la primera definición es código
       muerto. Eliminarla.
 - [x] `backend/config.py:32` — `building_config_file` no se usa en ningún sitio. Eliminar.

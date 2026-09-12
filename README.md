@@ -373,6 +373,28 @@ cd mobile_app/android_client
 ```
 El APK resultante se genera en `app/build/outputs/apk/debug/app-debug.apk`.
 
+**Compilación verificada** el 2026-09-12 con esta configuración:
+
+| Componente | Versión |
+| :--- | :--- |
+| JDK | 21 (JetBrains Runtime incluido en Android Studio) |
+| Gradle (wrapper) | 8.9 |
+| Android Gradle Plugin | 8.7.3 |
+| SDK de compilación | `android-34`, build-tools 34.0.0 |
+
+```text
+BUILD SUCCESSFUL in 4m 12s
+32 actionable tasks: 32 executed
+app-debug.apk — 6.07 MB
+```
+
+Único aviso del compilador, preexistente: `ScanResult.SSID` está marcado como obsoleto en
+`WifiScannerService.kt`. Si Gradle no encuentra el SDK, define `ANDROID_HOME` o crea
+`local.properties` con `sdk.dir=<ruta del SDK>`.
+
+> El wrapper fija **Gradle 8.9** a propósito: AGP 8.7.3 no admite Gradle 9.x. Si actualizas uno,
+> comprueba la matriz de compatibilidad antes de tocar el otro.
+
 ---
 
 ## 📊 Herramientas de Calibración y Auditoría
