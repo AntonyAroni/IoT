@@ -6,17 +6,21 @@ la actualización reactiva en la laptop del aula suscrita.
 import unittest
 import asyncio
 from fastapi.testclient import TestClient
-from backend.main import app, app_state
+from backend.main import app
 from backend.domain.building import Point2D
 from backend.domain.fingerprint import ReferencePoint, RadioMapEntry
+from backend.tests.helpers import IsolatedAppStateMixin
 
-class TestWebSocketIntegration(unittest.TestCase):
+class TestWebSocketIntegration(IsolatedAppStateMixin, unittest.TestCase):
     def setUp(self):
+        # El mixin sustituye los repositorios globales por otros efímeros, de modo que el
+        # punto de referencia sintético de abajo NO acabe escrito en data/radio_map.json.
+        super().setUp()
         self.client = TestClient(app)
         # Añadir un punto de referencia para calibrar S302
         rp = ReferencePoint(id="RP_TEST_S302", floor_number=3, position=Point2D(10.0, 2.0), label="S302 Center")
         entry = RadioMapEntry(reference_point=rp, rssi_means={"ap_test_s302": -45.0})
-        app_state.radio_map_repo.save_entry(entry)
+        self.radio_map_repo.save_entry(entry)
 
     def test_end_to_end_websocket_flow(self):
         """
