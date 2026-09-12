@@ -40,6 +40,10 @@
         </optgroup>
       </select>
 
+      <button id="btnConnectMobile" onclick="openConnectModal()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        📱 Conectar Celular
+      </button>
+
       <div class="connection-pill">
         <span id="statusDot" class="status-dot"></span>
         <span id="statusText">Conectando...</span>
@@ -134,6 +138,60 @@
     </ul>
   </section>
 
-  <script type="module" src="js/station_app.js"></script>
+  <!-- Modal de Conexión de Celulares / Diagnóstico de Red -->
+  <div id="modalConnect" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; width: 90%; max-width: 520px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; color: #38bdf8; font-size: 1.2rem;">📱 Conectar Teléfonos Móviles (Sensor IPS)</h3>
+        <button id="btnCloseModal" onclick="closeConnectModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+      
+      <p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.4; margin-bottom: 16px;">
+        Para conectar uno o varios smartphones al Cerebro IPS de esta laptop, ingresa en la app Android la siguiente dirección:
+      </p>
+
+      <div style="background: #0f172a; border: 1px solid #0284c7; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+        <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">IP del Servidor (Laptop):</div>
+        <div id="detectedServerIp" style="font-size: 1.3rem; font-family: monospace; font-weight: bold; color: #38bdf8; margin-top: 4px;">Detectando...</div>
+        <div id="detectedAllIps" style="font-size: 0.8rem; color: #64748b; margin-top: 6px;"></div>
+      </div>
+
+      <div style="background: #111827; border-radius: 8px; padding: 12px; font-size: 0.82rem; color: #94a3b8; line-height: 1.4;">
+        <strong style="color: #f8fafc;">💡 Opciones de Conectividad para Pruebas Reales:</strong>
+        <ul style="margin: 6px 0 0 16px; padding: 0;">
+          <li><strong>Misma Red / Hotspot:</strong> Si estás en el colegio y el Wi-Fi bloquea clientes, crea una Zona Wi-Fi portátil desde tu laptop o celular.</li>
+          <li><strong>Túnel Global (Sin configurar IPs):</strong> Ejecuta en la terminal de la laptop: <br><code style="color: #38bdf8; background: #000; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px;">cloudflared tunnel --url http://localhost:8000</code></li>
+        </ul>
+      </div>
+
+      <div style="margin-top: 20px; text-align: right;">
+        <button id="btnModalOk" onclick="closeConnectModal()" style="background: #0284c7; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer;">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.openConnectModal = async function() {
+      const modal = document.getElementById('modalConnect');
+      if (modal) modal.style.display = 'flex';
+      try {
+        const res = await fetch('/api/v1/network/info');
+        if (res.ok) {
+          const net = await res.json();
+          document.getElementById('detectedServerIp').textContent = `${net.primary_ip}:${net.server_port}`;
+          const ipItems = net.available_ips.map(item => `<span>${item.type}: <strong>${item.ip}</strong></span>`).join(' | ');
+          document.getElementById('detectedAllIps').innerHTML = `IPs detectadas: ${ipItems}`;
+        }
+      } catch (e) {
+        document.getElementById('detectedServerIp').textContent = window.location.host;
+      }
+    };
+    window.closeConnectModal = function() {
+      const modal = document.getElementById('modalConnect');
+      if (modal) modal.style.display = 'none';
+    };
+  </script>
+
+  <script type="module" src="js/station_app.js?v=2.5"></script>
 </body>
 </html>

@@ -4,9 +4,9 @@
     "student_name": "Antony Mendoza",
     "room_id": "S101",
     "status": "ABSENT",
-    "last_seen": 0.0,
+    "last_seen": 1789190766.9132612,
     "confirmed_at": null,
-    "last_rssi": null,
+    "last_rssi": -95.0,
     "samples_in_window": 0
   },
   {
@@ -14,9 +14,9 @@
     "student_name": "Valeria Gómez",
     "room_id": "S102",
     "status": "ABSENT",
-    "last_seen": 0.0,
+    "last_seen": 1789190766.9143498,
     "confirmed_at": null,
-    "last_rssi": null,
+    "last_rssi": -95.0,
     "samples_in_window": 0
   },
   {
@@ -74,7 +74,7 @@
     "student_name": "Diego Ramos (Demo Player)",
     "room_id": "S302",
     "status": "AT_DOOR",
-    "last_seen": 1789138003.3684552,
+    "last_seen": 1789190766.9216187,
     "confirmed_at": null,
     "last_rssi": -48.0,
     "samples_in_window": 1
@@ -113,6 +113,16 @@
     "student_id": "EST_12",
     "student_name": "Gabriel Medina",
     "room_id": "S403",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0
+  },
+  {
+    "student_id": "EST_99",
+    "student_name": "Estudiante Prueba Real",
+    "room_id": "S101",
     "status": "ABSENT",
     "last_seen": 0.0,
     "confirmed_at": null,

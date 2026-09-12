@@ -12,6 +12,8 @@ class WKNNConfig:
     epsilon: float = 1e-6
     default_absent_rssi: float = -105.0  # RSSI asignado cuando un AP no es detectado
     metric: str = "euclidean"  # 'euclidean' o 'manhattan'
+    enable_kalman_filter: bool = True
+    enable_adaptive_k: bool = True
 
 @dataclass(frozen=True)
 class AttendanceConfig:

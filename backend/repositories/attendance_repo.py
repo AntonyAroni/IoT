@@ -79,6 +79,9 @@ class InMemoryAttendanceRepository(IAttendanceRepository):
             if s.enrolled_room == room_id
         ]
 
+    def get_all_students(self) -> List[Student]:
+        return list(self._students.values())
+
     def save_to_file(self, filepath: str) -> None:
         os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
         data = [rec.to_dict() for rec in self._records.values()]

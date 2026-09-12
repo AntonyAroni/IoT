@@ -1,1157 +1,135 @@
 [
   {
-    "id": "RP_S101_Center",
-    "floor_number": 1,
-    "position": {
-      "x": 2.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 101",
-    "room_id": "S101",
-    "rssi_means": {
-      "ap_p1_west": -51.8,
-      "ap_p1_east": -74.0,
-      "ap_p1_room02": -65.8,
-      "ap_p2_west": -68.7,
-      "ap_p2_east": -88.3,
-      "ap_p2_room02": -84.1,
-      "ap_p3_west": -79.7,
-      "ap_p4_west": -92.5
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S101_Door",
-    "floor_number": 1,
-    "position": {
-      "x": 2.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 101",
-    "room_id": "S101",
-    "rssi_means": {
-      "ap_p1_west": -50.0,
-      "ap_p1_east": -72.5,
-      "ap_p1_room02": -66.4,
-      "ap_p2_west": -62.6,
-      "ap_p2_east": -89.1,
-      "ap_p2_room02": -81.9,
-      "ap_p3_west": -78.6,
-      "ap_p4_west": -92.8
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S102_Center",
-    "floor_number": 1,
-    "position": {
-      "x": 10.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 102",
-    "room_id": "S102",
-    "rssi_means": {
-      "ap_p1_west": -64.6,
-      "ap_p1_east": -63.8,
-      "ap_p1_room02": -40.6,
-      "ap_p2_west": -75.8,
-      "ap_p2_east": -78.0,
-      "ap_p2_room02": -54.7,
-      "ap_p3_west": -91.5,
-      "ap_p3_east": -93.6,
-      "ap_p3_room02": -69.1,
-      "ap_p4_room02": -80.7
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S102_Door",
-    "floor_number": 1,
-    "position": {
-      "x": 10.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 102",
-    "room_id": "S102",
-    "rssi_means": {
-      "ap_p1_west": -64.6,
-      "ap_p1_east": -66.9,
-      "ap_p1_room02": -51.1,
-      "ap_p2_west": -76.8,
-      "ap_p2_east": -79.0,
-      "ap_p2_room02": -61.0,
-      "ap_p3_west": -93.2,
-      "ap_p3_east": -93.3,
-      "ap_p3_room02": -81.2,
-      "ap_p4_room02": -89.6
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S103_Center",
-    "floor_number": 1,
-    "position": {
-      "x": 18.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 103",
-    "room_id": "S103",
-    "rssi_means": {
-      "ap_p1_west": -75.1,
-      "ap_p1_east": -53.1,
-      "ap_p1_room02": -66.2,
-      "ap_p2_west": -90.7,
-      "ap_p2_east": -65.9,
-      "ap_p2_room02": -82.3,
-      "ap_p3_east": -80.6,
-      "ap_p4_east": -94.7
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S103_Door",
-    "floor_number": 1,
-    "position": {
-      "x": 18.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 103",
-    "room_id": "S103",
-    "rssi_means": {
-      "ap_p1_west": -73.2,
-      "ap_p1_east": -50.8,
-      "ap_p1_room02": -67.1,
-      "ap_p2_west": -88.4,
-      "ap_p2_east": -64.9,
-      "ap_p2_room02": -78.3,
-      "ap_p3_east": -77.1,
-      "ap_p3_room02": -94.1,
-      "ap_p4_east": -92.0
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S201_Center",
-    "floor_number": 2,
-    "position": {
-      "x": 2.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 201",
-    "room_id": "S201",
-    "rssi_means": {
-      "ap_p1_west": -66.4,
-      "ap_p1_east": -85.4,
-      "ap_p1_room02": -81.1,
-      "ap_p2_west": -54.3,
-      "ap_p2_east": -72.8,
-      "ap_p2_room02": -67.1,
-      "ap_p3_west": -66.6,
-      "ap_p3_east": -89.2,
-      "ap_p3_room02": -82.5,
-      "ap_p4_west": -80.5,
-      "ap_p4_room02": -92.3
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S201_Door",
-    "floor_number": 2,
-    "position": {
-      "x": 2.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 201",
-    "room_id": "S201",
-    "rssi_means": {
-      "ap_p1_west": -65.7,
-      "ap_p1_east": -86.1,
-      "ap_p1_room02": -83.0,
-      "ap_p2_west": -50.8,
-      "ap_p2_east": -74.4,
-      "ap_p2_room02": -68.8,
-      "ap_p3_west": -63.2,
-      "ap_p3_east": -88.2,
-      "ap_p3_room02": -82.5,
-      "ap_p4_west": -77.9
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S202_Center",
-    "floor_number": 2,
-    "position": {
-      "x": 10.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 202",
-    "room_id": "S202",
-    "rssi_means": {
-      "ap_p1_west": -76.5,
-      "ap_p1_east": -75.1,
-      "ap_p1_room02": -55.4,
-      "ap_p2_west": -65.5,
-      "ap_p2_east": -66.3,
-      "ap_p2_room02": -38.0,
-      "ap_p3_west": -77.6,
-      "ap_p3_east": -77.9,
-      "ap_p3_room02": -51.7,
-      "ap_p4_west": -92.2,
-      "ap_p4_east": -92.5,
-      "ap_p4_room02": -65.8
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S202_Door",
-    "floor_number": 2,
-    "position": {
-      "x": 10.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 202",
-    "room_id": "S202",
-    "rssi_means": {
-      "ap_p1_west": -78.7,
-      "ap_p1_east": -78.9,
-      "ap_p1_room02": -65.4,
-      "ap_p2_west": -61.2,
-      "ap_p2_east": -64.9,
-      "ap_p2_room02": -50.2,
-      "ap_p3_west": -76.9,
-      "ap_p3_east": -77.7,
-      "ap_p3_room02": -66.5,
-      "ap_p4_west": -90.9,
-      "ap_p4_east": -89.5,
-      "ap_p4_room02": -78.4
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S203_Center",
-    "floor_number": 2,
-    "position": {
-      "x": 18.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 203",
-    "room_id": "S203",
-    "rssi_means": {
-      "ap_p1_west": -90.0,
-      "ap_p1_east": -63.8,
-      "ap_p1_room02": -79.7,
-      "ap_p2_west": -75.7,
-      "ap_p2_east": -50.2,
-      "ap_p2_room02": -65.0,
-      "ap_p3_west": -89.1,
-      "ap_p3_east": -65.1,
-      "ap_p3_room02": -79.6,
-      "ap_p4_east": -81.7
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S203_Door",
-    "floor_number": 2,
-    "position": {
-      "x": 18.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 203",
-    "room_id": "S203",
-    "rssi_means": {
-      "ap_p1_west": -87.6,
-      "ap_p1_east": -62.9,
-      "ap_p1_room02": -81.2,
-      "ap_p2_west": -74.8,
-      "ap_p2_east": -49.7,
-      "ap_p2_room02": -67.2,
-      "ap_p3_west": -86.4,
-      "ap_p3_east": -63.4,
-      "ap_p3_room02": -80.7,
-      "ap_p4_east": -76.1
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S301_Center",
-    "floor_number": 3,
-    "position": {
-      "x": 2.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 301",
-    "room_id": "S301",
-    "rssi_means": {
-      "ap_p1_west": -80.9,
-      "ap_p2_west": -65.3,
-      "ap_p2_east": -87.2,
-      "ap_p2_room02": -83.0,
-      "ap_p3_west": -52.1,
-      "ap_p3_east": -73.4,
-      "ap_p3_room02": -68.0,
-      "ap_p4_west": -67.5,
-      "ap_p4_east": -88.6,
-      "ap_p4_room02": -83.5
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S301_Door",
-    "floor_number": 3,
-    "position": {
-      "x": 2.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 301",
-    "room_id": "S301",
-    "rssi_means": {
-      "ap_p1_west": -77.2,
-      "ap_p2_west": -64.7,
-      "ap_p2_east": -87.9,
-      "ap_p2_room02": -80.5,
-      "ap_p3_west": -50.4,
-      "ap_p3_east": -74.5,
-      "ap_p3_room02": -68.3,
-      "ap_p4_west": -65.5,
-      "ap_p4_east": -89.7,
-      "ap_p4_room02": -83.5
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S302_Center",
+    "id": "Aula_302",
     "floor_number": 3,
     "position": {
       "x": 10.0,
       "y": 2.0
     },
-    "label": "Centro del Aula 302",
-    "room_id": "S302",
-    "rssi_means": {
-      "ap_p1_west": -94.6,
-      "ap_p1_east": -94.2,
-      "ap_p1_room02": -67.9,
-      "ap_p2_west": -79.9,
-      "ap_p2_east": -77.2,
-      "ap_p2_room02": -54.0,
-      "ap_p3_west": -61.7,
-      "ap_p3_east": -65.8,
-      "ap_p3_room02": -40.2,
-      "ap_p4_west": -79.4,
-      "ap_p4_east": -79.1,
-      "ap_p4_room02": -57.0
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S302_Door",
-    "floor_number": 3,
-    "position": {
-      "x": 10.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 302",
-    "room_id": "S302",
-    "rssi_means": {
-      "ap_p1_east": -94.1,
-      "ap_p1_room02": -82.2,
-      "ap_p2_west": -76.7,
-      "ap_p2_east": -78.2,
-      "ap_p2_room02": -65.1,
-      "ap_p3_west": -61.6,
-      "ap_p3_east": -64.8,
-      "ap_p3_room02": -51.0,
-      "ap_p4_west": -77.9,
-      "ap_p4_east": -79.7,
-      "ap_p4_room02": -64.7
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S303_Center",
-    "floor_number": 3,
-    "position": {
-      "x": 18.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 303",
-    "room_id": "S303",
-    "rssi_means": {
-      "ap_p1_east": -81.0,
-      "ap_p2_west": -91.1,
-      "ap_p2_east": -68.1,
-      "ap_p2_room02": -77.5,
-      "ap_p3_west": -75.2,
-      "ap_p3_east": -53.2,
-      "ap_p3_room02": -69.4,
-      "ap_p4_west": -87.8,
-      "ap_p4_east": -65.1,
-      "ap_p4_room02": -81.3
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S303_Door",
-    "floor_number": 3,
-    "position": {
-      "x": 18.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 303",
-    "room_id": "S303",
-    "rssi_means": {
-      "ap_p1_east": -76.9,
-      "ap_p2_west": -85.9,
-      "ap_p2_east": -62.3,
-      "ap_p2_room02": -81.4,
-      "ap_p3_west": -73.5,
-      "ap_p3_east": -48.0,
-      "ap_p3_room02": -69.9,
-      "ap_p4_west": -89.3,
-      "ap_p4_east": -66.8,
-      "ap_p4_room02": -81.5
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S401_Center",
-    "floor_number": 4,
-    "position": {
-      "x": 2.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 401",
-    "room_id": "S401",
-    "rssi_means": {
-      "ap_p2_west": -81.4,
-      "ap_p3_west": -66.5,
-      "ap_p3_east": -88.4,
-      "ap_p3_room02": -81.1,
-      "ap_p4_west": -56.3,
-      "ap_p4_east": -71.4,
-      "ap_p4_room02": -68.6
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S401_Door",
-    "floor_number": 4,
-    "position": {
-      "x": 2.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 401",
-    "room_id": "S401",
-    "rssi_means": {
-      "ap_p1_west": -93.2,
-      "ap_p2_west": -76.6,
-      "ap_p3_west": -63.9,
-      "ap_p3_east": -87.8,
-      "ap_p3_room02": -82.8,
-      "ap_p4_west": -50.9,
-      "ap_p4_east": -74.1,
-      "ap_p4_room02": -67.4
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S402_Center",
-    "floor_number": 4,
-    "position": {
-      "x": 10.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 402",
-    "room_id": "S402",
-    "rssi_means": {
-      "ap_p1_room02": -78.3,
-      "ap_p2_west": -93.2,
-      "ap_p2_east": -93.3,
-      "ap_p2_room02": -66.8,
-      "ap_p3_west": -79.0,
-      "ap_p3_east": -80.3,
-      "ap_p3_room02": -53.0,
-      "ap_p4_west": -68.0,
-      "ap_p4_east": -64.1,
-      "ap_p4_room02": -39.1
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S402_Door",
-    "floor_number": 4,
-    "position": {
-      "x": 10.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 402",
-    "room_id": "S402",
-    "rssi_means": {
-      "ap_p1_room02": -93.0,
-      "ap_p2_west": -92.3,
-      "ap_p2_east": -94.3,
-      "ap_p2_room02": -79.2,
-      "ap_p3_west": -78.4,
-      "ap_p3_east": -75.5,
-      "ap_p3_room02": -62.9,
-      "ap_p4_west": -63.8,
-      "ap_p4_east": -66.5,
-      "ap_p4_room02": -50.8
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S403_Center",
-    "floor_number": 4,
-    "position": {
-      "x": 18.0,
-      "y": 2.0
-    },
-    "label": "Centro del Aula 403",
-    "room_id": "S403",
-    "rssi_means": {
-      "ap_p2_east": -80.6,
-      "ap_p2_room02": -93.5,
-      "ap_p3_west": -88.3,
-      "ap_p3_east": -66.7,
-      "ap_p3_room02": -81.4,
-      "ap_p4_west": -73.3,
-      "ap_p4_east": -55.9,
-      "ap_p4_room02": -67.5
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_S403_Door",
-    "floor_number": 4,
-    "position": {
-      "x": 18.0,
-      "y": 4.0
-    },
-    "label": "Puerta de Acceso del Aula 403",
-    "room_id": "S403",
-    "rssi_means": {
-      "ap_p1_east": -91.7,
-      "ap_p2_east": -77.6,
-      "ap_p3_west": -88.2,
-      "ap_p3_east": -64.8,
-      "ap_p3_room02": -80.7,
-      "ap_p4_west": -77.1,
-      "ap_p4_east": -52.5,
-      "ap_p4_room02": -67.4
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P1_Hall_W",
-    "floor_number": 1,
-    "position": {
-      "x": 2.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Oeste Piso 1",
+    "label": "Punto Calibrado Aula_302",
     "room_id": null,
     "rssi_means": {
-      "ap_p1_west": -50.6,
-      "ap_p1_east": -72.8,
-      "ap_p1_room02": -68.2,
-      "ap_p2_west": -68.0,
-      "ap_p2_east": -90.9,
-      "ap_p2_room02": -80.6,
-      "ap_p3_west": -82.2
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P1_Hall_C",
-    "floor_number": 1,
-    "position": {
-      "x": 10.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Central Piso 1",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -63.8,
-      "ap_p1_east": -62.1,
-      "ap_p1_room02": -53.7,
-      "ap_p2_west": -77.8,
-      "ap_p2_east": -79.2,
-      "ap_p2_room02": -67.1,
-      "ap_p3_west": -90.5,
-      "ap_p3_room02": -83.1
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P1_Hall_E",
-    "floor_number": 1,
-    "position": {
-      "x": 18.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Este Piso 1",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -74.3,
-      "ap_p1_east": -51.5,
-      "ap_p1_room02": -69.5,
-      "ap_p2_west": -88.6,
-      "ap_p2_east": -68.4,
-      "ap_p2_room02": -83.3,
-      "ap_p3_east": -82.8,
-      "ap_p3_room02": -91.9,
-      "ap_p4_east": -93.9
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P2_Hall_W",
-    "floor_number": 2,
-    "position": {
-      "x": 2.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Oeste Piso 2",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -65.1,
-      "ap_p1_east": -88.0,
-      "ap_p1_room02": -81.3,
-      "ap_p2_west": -51.0,
-      "ap_p2_east": -72.7,
-      "ap_p2_room02": -68.1,
-      "ap_p3_west": -65.0,
-      "ap_p3_east": -87.6,
-      "ap_p3_room02": -81.5,
-      "ap_p4_west": -80.1
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P2_Hall_C",
-    "floor_number": 2,
-    "position": {
-      "x": 10.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Central Piso 2",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -78.6,
-      "ap_p1_east": -78.8,
-      "ap_p1_room02": -68.3,
-      "ap_p2_west": -62.9,
-      "ap_p2_east": -65.7,
-      "ap_p2_room02": -56.7,
-      "ap_p3_west": -78.9,
-      "ap_p3_east": -77.5,
-      "ap_p3_room02": -67.2,
-      "ap_p4_west": -93.0,
-      "ap_p4_east": -92.1,
-      "ap_p4_room02": -84.9
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P2_Hall_E",
-    "floor_number": 2,
-    "position": {
-      "x": 18.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Este Piso 2",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -87.4,
-      "ap_p1_east": -67.3,
-      "ap_p1_room02": -81.6,
-      "ap_p2_west": -73.1,
-      "ap_p2_east": -51.2,
-      "ap_p2_room02": -66.6,
-      "ap_p3_west": -84.8,
-      "ap_p3_east": -67.9,
-      "ap_p3_room02": -82.7,
-      "ap_p4_east": -81.5
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P3_Hall_W",
-    "floor_number": 3,
-    "position": {
-      "x": 2.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Oeste Piso 3",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -80.1,
-      "ap_p2_west": -64.7,
-      "ap_p2_east": -88.6,
-      "ap_p2_room02": -83.1,
-      "ap_p3_west": -56.7,
-      "ap_p3_east": -73.4,
-      "ap_p3_room02": -66.8,
-      "ap_p4_west": -64.5,
-      "ap_p4_east": -89.5,
-      "ap_p4_room02": -83.7
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P3_Hall_C",
-    "floor_number": 3,
-    "position": {
-      "x": 10.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Central Piso 3",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -94.5,
-      "ap_p1_east": -93.8,
-      "ap_p1_room02": -84.9,
-      "ap_p2_west": -75.8,
-      "ap_p2_east": -76.2,
-      "ap_p2_room02": -68.6,
-      "ap_p3_west": -64.2,
-      "ap_p3_east": -63.3,
-      "ap_p3_room02": -55.0,
-      "ap_p4_west": -76.3,
-      "ap_p4_east": -79.7,
-      "ap_p4_room02": -70.8
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P3_Hall_E",
-    "floor_number": 3,
-    "position": {
-      "x": 18.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Este Piso 3",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_east": -80.3,
-      "ap_p2_west": -88.5,
-      "ap_p2_east": -68.6,
-      "ap_p2_room02": -82.0,
-      "ap_p3_west": -73.5,
-      "ap_p3_east": -55.4,
-      "ap_p3_room02": -67.9,
-      "ap_p4_west": -86.1,
-      "ap_p4_east": -69.7,
-      "ap_p4_room02": -81.0
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P4_Hall_W",
-    "floor_number": 4,
-    "position": {
-      "x": 2.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Oeste Piso 4",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -93.9,
-      "ap_p2_west": -81.7,
-      "ap_p3_west": -64.3,
-      "ap_p3_east": -87.9,
-      "ap_p3_room02": -83.0,
-      "ap_p4_west": -54.2,
-      "ap_p4_east": -75.0,
-      "ap_p4_room02": -66.3
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P4_Hall_C",
-    "floor_number": 4,
-    "position": {
-      "x": 10.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Central Piso 4",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p2_west": -91.8,
-      "ap_p2_east": -94.3,
-      "ap_p2_room02": -84.9,
-      "ap_p3_west": -77.5,
-      "ap_p3_east": -74.2,
-      "ap_p3_room02": -68.3,
-      "ap_p4_west": -61.9,
-      "ap_p4_east": -64.3,
-      "ap_p4_room02": -57.0
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P4_Hall_E",
-    "floor_number": 4,
-    "position": {
-      "x": 18.0,
-      "y": 5.0
-    },
-    "label": "Pasillo Este Piso 4",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p2_east": -80.9,
-      "ap_p3_west": -88.0,
-      "ap_p3_east": -64.8,
-      "ap_p3_room02": -82.2,
-      "ap_p4_west": -72.9,
-      "ap_p4_east": -52.3,
-      "ap_p4_room02": -67.8
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P1_Stairs",
-    "floor_number": 1,
-    "position": {
-      "x": 10.0,
-      "y": 8.0
-    },
-    "label": "Descanso de Escalera Piso 1",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -67.1,
-      "ap_p1_east": -63.1,
-      "ap_p1_room02": -61.3,
-      "ap_p2_west": -80.7,
-      "ap_p2_east": -82.2,
-      "ap_p2_room02": -80.5,
-      "ap_p3_east": -91.7,
-      "ap_p3_room02": -93.9
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P2_Stairs",
-    "floor_number": 2,
-    "position": {
-      "x": 10.0,
-      "y": 8.0
-    },
-    "label": "Descanso de Escalera Piso 2",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_west": -81.0,
-      "ap_p1_east": -81.2,
-      "ap_p1_room02": -75.9,
-      "ap_p2_west": -65.6,
-      "ap_p2_east": -67.2,
-      "ap_p2_room02": -62.0,
-      "ap_p3_west": -80.8,
-      "ap_p3_east": -80.2,
-      "ap_p3_room02": -80.0,
-      "ap_p4_west": -92.7,
-      "ap_p4_room02": -90.2
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P3_Stairs",
-    "floor_number": 3,
-    "position": {
-      "x": 10.0,
-      "y": 8.0
-    },
-    "label": "Descanso de Escalera Piso 3",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p1_east": -94.6,
-      "ap_p1_room02": -91.9,
-      "ap_p2_west": -82.1,
-      "ap_p2_east": -83.8,
-      "ap_p2_room02": -76.8,
-      "ap_p3_west": -66.5,
-      "ap_p3_east": -69.2,
-      "ap_p3_room02": -64.0,
-      "ap_p4_west": -78.7,
-      "ap_p4_east": -79.1,
-      "ap_p4_room02": -77.5
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P4_Stairs",
-    "floor_number": 4,
-    "position": {
-      "x": 10.0,
-      "y": 8.0
-    },
-    "label": "Descanso de Escalera Piso 4",
-    "room_id": null,
-    "rssi_means": {
-      "ap_p2_west": -93.9,
-      "ap_p2_east": -94.6,
-      "ap_p2_room02": -90.6,
-      "ap_p3_west": -78.6,
-      "ap_p3_east": -78.6,
-      "ap_p3_room02": -77.3,
-      "ap_p4_west": -68.1,
-      "ap_p4_east": -66.6,
-      "ap_p4_room02": -65.5
-    },
-    "rssi_std": {},
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P3_HAll",
-    "floor_number": 3,
-    "position": {
-      "x": 10.0,
-      "y": 2.0
-    },
-    "label": "Punto Calibrado RP_P3_HAll",
-    "room_id": null,
-    "rssi_means": {
-      "38:16:5a:6a:a0:4c": -32.7,
-      "44:3b:14:5f:6d:c8": -90.0,
-      "38:16:5a:6a:a0:4d": -24.9,
-      "2c:96:82:e8:c8:60": -84.6,
-      "ae:14:df:26:60:9f": -82.5,
-      "3a:16:5a:4a:a0:4d": -29.3,
-      "2c:96:82:e9:26:20": -81.6,
-      "a0:8a:06:17:5d:4f": -79.4,
-      "b0:19:21:b0:d7:89": -85.4,
-      "f8:79:28:dc:86:0c": -53.7,
-      "f8:79:28:5c:86:0d": -66.8,
-      "44:df:65:ed:c9:df": -77.5,
-      "b0:14:df:22:c0:76": -83.7,
-      "b0:14:df:17:a4:2f": -88.0,
-      "b0:14:df:26:60:9f": -82.4,
-      "2c:96:82:e8:cf:c8": -91.2,
-      "fa:79:28:9c:86:0d": -69.9,
-      "6a:7d:00:5e:21:85": -81.4,
-      "30:24:50:73:93:cc": -77.9,
-      "a0:8a:06:17:5d:4e": -88.6,
-      "d8:9a:0d:fc:13:d1": -87.0,
-      "58:04:4f:7c:83:26": -92.0,
-      "a2:8a:06:37:5d:4e": -88.0,
-      "90:f6:44:4e:b7:c4": -85.7,
-      "34:c6:dd:c6:d9:1d": -81.0,
-      "d8:9a:0d:63:9d:96": -90.0,
-      "d8:9a:0d:fb:9d:70": -87.0,
-      "4a:df:65:ed:c9:df": -76.0,
-      "da:9a:0d:4b:9d:70": -88.0,
-      "2c:96:82:eb:42:70": -84.0,
-      "ae:14:df:17:a4:2f": -89.0,
-      "44:3b:14:23:e8:98": -90.0
+      "ea:49:05:04:bb:b4": -52.1,
+      "98:97:d1:93:e6:52": -51.8,
+      "18:48:59:63:fa:85": -81.0,
+      "7a:bd:d8:e1:e0:10": -73.3,
+      "a4:88:73:40:96:e0": -59.6,
+      "a4:88:73:40:b7:af": -81.6,
+      "f2:e6:0d:cd:c2:b2": -63.5,
+      "f4:52:46:32:8c:be": -80.2,
+      "f4:52:46:32:8c:bf": -75.6,
+      "34:20:e3:05:42:d8": -78.0,
+      "18:48:59:5a:4d:bd": -72.1,
+      "a4:88:73:40:9b:af": -86.1,
+      "a4:88:73:40:54:ef": -85.7,
+      "a4:88:73:40:96:ef": -50.9,
+      "18:48:59:5a:4d:c1": -68.3,
+      "9a:3b:c5:21:5c:21": -80.0,
+      "44:3b:14:0d:6a:d8": -86.0,
+      "a4:88:73:40:a4:0f": -90.0
     },
     "rssi_std": {
-      "38:16:5a:6a:a0:4c": 4.0,
-      "44:3b:14:5f:6d:c8": 0.0,
-      "38:16:5a:6a:a0:4d": 6.0,
-      "2c:96:82:e8:c8:60": 2.1,
-      "ae:14:df:26:60:9f": 1.4,
-      "3a:16:5a:4a:a0:4d": 3.7,
-      "2c:96:82:e9:26:20": 0.7,
-      "a0:8a:06:17:5d:4f": 0.5,
-      "b0:19:21:b0:d7:89": 2.6,
-      "f8:79:28:dc:86:0c": 2.3,
-      "f8:79:28:5c:86:0d": 6.0,
-      "44:df:65:ed:c9:df": 0.8,
-      "b0:14:df:22:c0:76": 1.5,
-      "b0:14:df:17:a4:2f": 2.0,
-      "b0:14:df:26:60:9f": 2.3,
-      "2c:96:82:e8:cf:c8": 0.4,
-      "fa:79:28:9c:86:0d": 4.2,
-      "6a:7d:00:5e:21:85": 4.5,
-      "30:24:50:73:93:cc": 1.4,
-      "a0:8a:06:17:5d:4e": 2.0,
-      "d8:9a:0d:fc:13:d1": 0.0,
-      "58:04:4f:7c:83:26": 0.0,
-      "a2:8a:06:37:5d:4e": 1.5,
-      "90:f6:44:4e:b7:c4": 2.4,
-      "34:c6:dd:c6:d9:1d": 2.6,
-      "d8:9a:0d:63:9d:96": 0.0,
-      "d8:9a:0d:fb:9d:70": 0.0,
-      "4a:df:65:ed:c9:df": 0.0,
-      "da:9a:0d:4b:9d:70": 0.0,
-      "2c:96:82:eb:42:70": 0.0,
-      "ae:14:df:17:a4:2f": 0.0,
-      "44:3b:14:23:e8:98": 0.0
+      "ea:49:05:04:bb:b4": 5.9,
+      "98:97:d1:93:e6:52": 5.1,
+      "18:48:59:63:fa:85": 2.8,
+      "7a:bd:d8:e1:e0:10": 2.0,
+      "a4:88:73:40:96:e0": 1.5,
+      "a4:88:73:40:b7:af": 3.8,
+      "f2:e6:0d:cd:c2:b2": 9.8,
+      "f4:52:46:32:8c:be": 1.9,
+      "f4:52:46:32:8c:bf": 1.0,
+      "34:20:e3:05:42:d8": 0.0,
+      "18:48:59:5a:4d:bd": 1.5,
+      "a4:88:73:40:9b:af": 1.3,
+      "a4:88:73:40:54:ef": 1.2,
+      "a4:88:73:40:96:ef": 1.8,
+      "18:48:59:5a:4d:c1": 2.4,
+      "9a:3b:c5:21:5c:21": 0.0,
+      "44:3b:14:0d:6a:d8": 0.0,
+      "a4:88:73:40:a4:0f": 0.0
     },
     "sample_count": 15
   },
   {
-    "id": "RP_Escalera",
+    "id": "PUERTA_302",
     "floor_number": 3,
     "position": {
       "x": 10.0,
       "y": 2.0
     },
-    "label": "Punto Calibrado RP_Escalera",
+    "label": "Punto Calibrado PUERTA_302",
     "room_id": null,
     "rssi_means": {
-      "30:24:50:73:93:cc": -79.8,
-      "38:16:5a:6a:a0:4c": -39.1,
-      "44:3b:14:5f:6d:c8": -90.0,
-      "38:16:5a:6a:a0:4d": -34.7,
-      "ae:14:df:26:60:9f": -87.0,
-      "3a:16:5a:4a:a0:4d": -34.7,
-      "b0:19:21:b0:d7:89": -88.9,
-      "f8:79:28:dc:86:0c": -46.7,
-      "f8:79:28:5c:86:0d": -47.3,
-      "44:df:65:ed:c9:df": -85.0,
-      "b0:14:df:22:c0:76": -78.8,
-      "b0:14:df:26:60:9f": -87.4,
-      "fa:79:28:9c:86:0d": -52.3,
-      "6a:7d:00:5e:21:85": -82.0,
-      "b0:14:df:17:a5:de": -90.0,
-      "2c:96:82:e8:c8:60": -90.0,
-      "a0:8a:06:17:5d:4f": -83.0,
-      "cc:ba:bd:b1:70:93": -90.0,
-      "44:3b:14:23:e8:98": -90.0,
-      "fc:5a:1d:e7:9d:a8": -90.0,
-      "ee:ba:bd:b1:70:93": -92.0,
-      "30:24:50:73:93:cd": -86.0,
-      "2c:96:82:e9:26:20": -88.0,
-      "2c:96:82:eb:42:d8": -83.5,
-      "34:c6:dd:c6:d9:1d": -87.0,
-      "44:3b:14:10:b3:80": -89.4,
-      "2c:96:82:e8:cf:c8": -92.0,
-      "4a:df:65:ed:c9:df": -82.0,
-      "ae:14:df:17:a4:2f": -90.0
+      "a4:88:73:40:7d:af": -87.0,
+      "ea:49:05:04:bb:b4": -77.0,
+      "a4:88:73:40:7d:ae": -86.0,
+      "a4:88:73:40:a4:2e": -87.0,
+      "98:97:d1:93:e6:52": -49.0,
+      "a4:88:73:40:a2:c0": -82.0,
+      "9a:3b:c5:21:5c:21": -73.0,
+      "7a:bd:d8:e1:e0:10": -75.0,
+      "9e:2a:ab:6f:15:7a": -79.0,
+      "a4:88:73:40:c5:ce": -79.0,
+      "a4:88:73:40:c5:cf": -79.0,
+      "a4:88:73:40:96:e0": -80.0,
+      "34:20:e3:05:42:dc": -77.0,
+      "a4:88:73:42:0e:af": -77.0,
+      "34:20:e3:05:3f:ec": -84.0,
+      "a4:88:73:42:0e:ae": -77.0,
+      "a4:88:73:40:c8:cf": -80.0,
+      "a4:88:73:42:0e:a1": -84.0,
+      "cc:1b:5a:ac:bb:60": -75.0,
+      "f2:e6:0d:cd:c2:b2": -77.0,
+      "a4:88:73:40:9d:6f": -80.0,
+      "18:48:59:5a:4d:bd": -75.0,
+      "a4:88:73:40:9b:af": -89.0,
+      "a4:88:73:40:a4:0f": -88.0,
+      "a4:88:73:40:99:2f": -78.0,
+      "a4:88:73:40:99:2e": -80.0,
+      "a4:88:73:40:54:ef": -75.0,
+      "a4:88:73:40:9a:4f": -80.0,
+      "a4:88:73:40:9a:4e": -79.0,
+      "a4:88:73:40:a2:ce": -77.0,
+      "a4:88:73:40:96:ef": -76.0,
+      "a4:88:73:40:a2:cf": -77.0,
+      "34:20:e3:05:3f:cc": -77.0,
+      "1c:3a:60:0e:56:9c": -84.0
     },
     "rssi_std": {
-      "30:24:50:73:93:cc": 1.9,
-      "38:16:5a:6a:a0:4c": 5.7,
-      "44:3b:14:5f:6d:c8": 0.0,
-      "38:16:5a:6a:a0:4d": 1.6,
-      "ae:14:df:26:60:9f": 2.0,
-      "3a:16:5a:4a:a0:4d": 1.6,
-      "b0:19:21:b0:d7:89": 1.7,
-      "f8:79:28:dc:86:0c": 3.5,
-      "f8:79:28:5c:86:0d": 1.9,
-      "44:df:65:ed:c9:df": 0.0,
-      "b0:14:df:22:c0:76": 1.3,
-      "b0:14:df:26:60:9f": 1.9,
-      "fa:79:28:9c:86:0d": 0.9,
-      "6a:7d:00:5e:21:85": 0.0,
-      "b0:14:df:17:a5:de": 0.0,
-      "2c:96:82:e8:c8:60": 0.0,
-      "a0:8a:06:17:5d:4f": 0.0,
-      "cc:ba:bd:b1:70:93": 0.0,
-      "44:3b:14:23:e8:98": 0.0,
-      "fc:5a:1d:e7:9d:a8": 0.8,
-      "ee:ba:bd:b1:70:93": 0.0,
-      "30:24:50:73:93:cd": 0.0,
-      "2c:96:82:e9:26:20": 0.0,
-      "2c:96:82:eb:42:d8": 0.5,
-      "34:c6:dd:c6:d9:1d": 0.0,
-      "44:3b:14:10:b3:80": 2.4,
-      "2c:96:82:e8:cf:c8": 0.0,
-      "4a:df:65:ed:c9:df": 0.0,
-      "ae:14:df:17:a4:2f": 0.0
-    },
-    "sample_count": 15
-  },
-  {
-    "id": "RP_P4_Meta",
-    "floor_number": 4,
-    "position": {
-      "x": 10.0,
-      "y": 2.0
-    },
-    "label": "Punto Calibrado RP_P4_Meta",
-    "room_id": null,
-    "rssi_means": {
-      "30:24:50:73:93:cc": -85.7,
-      "38:16:5a:6a:a0:4c": -62.8,
-      "38:16:5a:6a:a0:4d": -72.9,
-      "2c:96:82:e8:c8:60": -82.0,
-      "3a:16:5a:4a:a0:4d": -72.5,
-      "4a:df:65:ed:c9:df": -80.0,
-      "34:c6:dd:c6:d9:1d": -85.5,
-      "a0:8a:06:17:5d:4e": -88.0,
-      "b0:19:21:b0:d7:89": -78.7,
-      "f8:79:28:dc:86:0c": -28.1,
-      "a2:8a:06:37:5d:4e": -87.3,
-      "f8:79:28:5c:86:0d": -14.8,
-      "b0:14:df:22:c0:76": -74.7,
-      "b0:14:df:26:60:9f": -90.1,
-      "d8:9a:0d:63:30:46": -84.3,
-      "fa:79:28:9c:86:0d": -16.2,
-      "d4:6e:0e:f0:bb:bc": -87.0,
-      "ae:14:df:26:60:9f": -89.4,
-      "ec:75:0c:87:26:22": -89.0,
-      "2c:96:82:e8:cf:c8": -79.8,
-      "2c:96:82:e9:26:20": -81.0,
-      "ae:14:df:22:c0:77": -89.0,
-      "be:07:1d:26:3f:e1": -85.0
-    },
-    "rssi_std": {
-      "30:24:50:73:93:cc": 0.9,
-      "38:16:5a:6a:a0:4c": 1.2,
-      "38:16:5a:6a:a0:4d": 0.3,
-      "2c:96:82:e8:c8:60": 2.4,
-      "3a:16:5a:4a:a0:4d": 0.5,
-      "4a:df:65:ed:c9:df": 0.0,
-      "34:c6:dd:c6:d9:1d": 1.4,
-      "a0:8a:06:17:5d:4e": 0.0,
-      "b0:19:21:b0:d7:89": 0.9,
-      "f8:79:28:dc:86:0c": 1.9,
-      "a2:8a:06:37:5d:4e": 0.5,
-      "f8:79:28:5c:86:0d": 1.0,
-      "b0:14:df:22:c0:76": 1.0,
-      "b0:14:df:26:60:9f": 0.9,
-      "d8:9a:0d:63:30:46": 1.4,
-      "fa:79:28:9c:86:0d": 1.0,
-      "d4:6e:0e:f0:bb:bc": 0.0,
-      "ae:14:df:26:60:9f": 0.5,
-      "ec:75:0c:87:26:22": 0.0,
-      "2c:96:82:e8:cf:c8": 1.2,
-      "2c:96:82:e9:26:20": 0.0,
-      "ae:14:df:22:c0:77": 0.0,
-      "be:07:1d:26:3f:e1": 0.0
+      "a4:88:73:40:7d:af": 0.0,
+      "ea:49:05:04:bb:b4": 0.0,
+      "a4:88:73:40:7d:ae": 0.0,
+      "a4:88:73:40:a4:2e": 0.0,
+      "98:97:d1:93:e6:52": 0.0,
+      "a4:88:73:40:a2:c0": 0.0,
+      "9a:3b:c5:21:5c:21": 0.0,
+      "7a:bd:d8:e1:e0:10": 0.0,
+      "9e:2a:ab:6f:15:7a": 0.0,
+      "a4:88:73:40:c5:ce": 0.0,
+      "a4:88:73:40:c5:cf": 0.0,
+      "a4:88:73:40:96:e0": 0.0,
+      "34:20:e3:05:42:dc": 0.0,
+      "a4:88:73:42:0e:af": 0.0,
+      "34:20:e3:05:3f:ec": 0.0,
+      "a4:88:73:42:0e:ae": 0.0,
+      "a4:88:73:40:c8:cf": 0.0,
+      "a4:88:73:42:0e:a1": 0.0,
+      "cc:1b:5a:ac:bb:60": 0.0,
+      "f2:e6:0d:cd:c2:b2": 0.0,
+      "a4:88:73:40:9d:6f": 0.0,
+      "18:48:59:5a:4d:bd": 0.0,
+      "a4:88:73:40:9b:af": 0.0,
+      "a4:88:73:40:a4:0f": 0.0,
+      "a4:88:73:40:99:2f": 0.0,
+      "a4:88:73:40:99:2e": 0.0,
+      "a4:88:73:40:54:ef": 0.0,
+      "a4:88:73:40:9a:4f": 0.0,
+      "a4:88:73:40:9a:4e": 0.0,
+      "a4:88:73:40:a2:ce": 0.0,
+      "a4:88:73:40:96:ef": 0.0,
+      "a4:88:73:40:a2:cf": 0.0,
+      "34:20:e3:05:3f:cc": 0.0,
+      "1c:3a:60:0e:56:9c": 0.0
     },
     "sample_count": 15
   },
@@ -1169,5 +147,212 @@
     },
     "rssi_std": {},
     "sample_count": 1
+  },
+  {
+    "id": "RP_S201_center",
+    "floor_number": 2,
+    "position": {
+      "x": 10.0,
+      "y": 2.0
+    },
+    "label": "Punto Calibrado RP_S201_center",
+    "room_id": null,
+    "rssi_means": {
+      "f8:3d:c6:6e:8a:e3": -32.13,
+      "a4:88:73:40:9f:2f": -51.0,
+      "a4:88:73:40:54:e0": -60.13,
+      "a4:88:73:42:0e:af": -78.4,
+      "a4:88:73:40:9f:20": -49.55,
+      "18:48:59:5a:4d:bd": -70.73,
+      "a4:88:73:40:54:ef": -70.53,
+      "a4:88:73:42:0e:ae": -78.31,
+      "a4:88:73:40:97:c0": -76.75,
+      "5c:b1:3e:53:02:2f": -83.0,
+      "58:2f:f7:08:42:76": -85.0,
+      "18:48:59:63:fa:85": -84.0,
+      "44:3b:14:0d:6a:d8": -83.0,
+      "a4:88:73:42:0e:a1": -79.0,
+      "18:48:59:5a:4d:c1": -82.0
+    },
+    "rssi_std": {
+      "f8:3d:c6:6e:8a:e3": 1.26,
+      "a4:88:73:40:9f:2f": 2.94,
+      "a4:88:73:40:54:e0": 6.38,
+      "a4:88:73:42:0e:af": 2.36,
+      "a4:88:73:40:9f:20": 3.96,
+      "18:48:59:5a:4d:bd": 5.94,
+      "a4:88:73:40:54:ef": 5.07,
+      "a4:88:73:42:0e:ae": 2.46,
+      "a4:88:73:40:97:c0": 3.38,
+      "5c:b1:3e:53:02:2f": 0.0,
+      "58:2f:f7:08:42:76": 0.0,
+      "18:48:59:63:fa:85": 0.0,
+      "44:3b:14:0d:6a:d8": 0.0,
+      "a4:88:73:42:0e:a1": 0.0,
+      "18:48:59:5a:4d:c1": 0.0
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S201_puerta",
+    "floor_number": 2,
+    "position": {
+      "x": 10.0,
+      "y": 2.0
+    },
+    "label": "Punto Calibrado RP_S201_puerta",
+    "room_id": null,
+    "rssi_means": {
+      "f8:3d:c6:6e:8a:e3": -62.67,
+      "cc:1b:5a:69:9c:10": -88.75,
+      "a4:88:73:40:9f:2f": -78.87,
+      "18:48:59:63:fa:85": -81.8,
+      "44:3b:14:0d:6a:d8": -81.67,
+      "44:d4:54:9c:42:67": -83.55,
+      "a4:88:73:40:54:e0": -78.17,
+      "a4:88:73:42:0e:af": -69.8,
+      "a4:88:73:42:0e:ae": -69.6,
+      "a4:88:73:40:9f:20": -79.25,
+      "a4:88:73:40:97:c0": -78.33,
+      "f4:52:46:32:8c:be": -80.57,
+      "18:48:59:5a:4d:bd": -69.57,
+      "a4:88:73:40:54:ef": -83.4,
+      "46:3b:14:3d:6a:df": -83.2,
+      "18:48:59:5a:4d:c1": -71.36,
+      "44:3b:14:0d:6a:df": -81.4,
+      "18:48:59:63:fa:89": -88.6,
+      "a4:88:73:40:b7:af": -85.1,
+      "a4:88:73:40:7d:cf": -85.6,
+      "a4:88:73:40:7d:ce": -86.1,
+      "f4:52:46:32:8c:bf": -82.29,
+      "5c:b1:3e:53:02:2f": -87.0,
+      "34:8f:27:5c:6b:bc": -81.0,
+      "34:8f:27:1c:6b:bc": -80.0,
+      "1a:07:8b:0d:f4:8c": -93.0,
+      "44:d4:54:9c:42:66": -85.0,
+      "34:20:e3:05:42:d8": -90.2,
+      "a4:88:73:40:97:cf": -86.0,
+      "5e:ec:b0:b5:42:8c": -80.0,
+      "34:8f:27:5c:6c:a8": -87.0,
+      "7e:f5:57:a7:17:6b": -85.0,
+      "ec:1b:5f:e9:a8:62": -84.0
+    },
+    "rssi_std": {
+      "f8:3d:c6:6e:8a:e3": 4.11,
+      "cc:1b:5a:69:9c:10": 0.43,
+      "a4:88:73:40:9f:2f": 8.66,
+      "18:48:59:63:fa:85": 2.4,
+      "44:3b:14:0d:6a:d8": 1.76,
+      "44:d4:54:9c:42:67": 2.68,
+      "a4:88:73:40:54:e0": 7.84,
+      "a4:88:73:42:0e:af": 2.76,
+      "a4:88:73:42:0e:ae": 2.85,
+      "a4:88:73:40:9f:20": 4.62,
+      "a4:88:73:40:97:c0": 0.94,
+      "f4:52:46:32:8c:be": 2.26,
+      "18:48:59:5a:4d:bd": 2.44,
+      "a4:88:73:40:54:ef": 5.55,
+      "46:3b:14:3d:6a:df": 0.4,
+      "18:48:59:5a:4d:c1": 1.23,
+      "44:3b:14:0d:6a:df": 2.15,
+      "18:48:59:63:fa:89": 0.49,
+      "a4:88:73:40:b7:af": 1.92,
+      "a4:88:73:40:7d:cf": 1.85,
+      "a4:88:73:40:7d:ce": 2.02,
+      "f4:52:46:32:8c:bf": 2.19,
+      "5c:b1:3e:53:02:2f": 0.0,
+      "34:8f:27:5c:6b:bc": 0.0,
+      "34:8f:27:1c:6b:bc": 0.0,
+      "1a:07:8b:0d:f4:8c": 0.0,
+      "44:d4:54:9c:42:66": 0.0,
+      "34:20:e3:05:42:d8": 1.6,
+      "a4:88:73:40:97:cf": 0.0,
+      "5e:ec:b0:b5:42:8c": 0.0,
+      "34:8f:27:5c:6c:a8": 0.0,
+      "7e:f5:57:a7:17:6b": 0.0,
+      "ec:1b:5f:e9:a8:62": 0.0
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S201_pasillo",
+    "floor_number": 2,
+    "position": {
+      "x": 10.0,
+      "y": 2.0
+    },
+    "label": "Punto Calibrado RP_S201_pasillo",
+    "room_id": null,
+    "rssi_means": {
+      "a4:88:73:40:97:cf": -84.57,
+      "f8:3d:c6:6e:8a:e3": -75.27,
+      "a4:88:73:40:b7:af": -83.71,
+      "7e:f5:57:a7:17:6b": -74.0,
+      "a4:88:73:42:0e:af": -67.0,
+      "a4:88:73:42:0e:ae": -67.0,
+      "a4:88:73:40:7d:cf": -86.47,
+      "a4:88:73:40:7d:ce": -86.5,
+      "cc:1b:5a:ac:bb:60": -71.38,
+      "18:48:59:5a:4d:bd": -82.33,
+      "a4:88:73:40:54:ef": -82.6,
+      "a4:88:73:40:b2:0e": -90.0,
+      "a4:88:73:40:b2:0f": -89.0,
+      "ec:1b:5f:e9:a8:62": -84.0,
+      "a4:88:73:40:b7:a0": -78.55,
+      "5e:ec:b0:b5:42:8c": -79.0,
+      "a4:88:73:40:9f:2f": -83.0,
+      "18:48:59:63:fa:85": -88.0,
+      "a4:88:73:40:c5:cf": -90.0,
+      "cc:1b:5a:aa:72:b0": -82.0,
+      "a4:88:73:40:54:e0": -73.0,
+      "a4:88:73:42:0e:a1": -66.0,
+      "a4:88:73:42:0e:a0": -67.0,
+      "3c:84:6a:b6:90:a4": -86.0,
+      "3c:84:6a:b6:90:a5": -79.75,
+      "34:20:e3:05:42:d8": -78.82,
+      "d8:07:b6:f6:ef:c5": -79.75,
+      "a4:88:73:40:96:e0": -85.86,
+      "34:20:e3:05:42:dc": -80.0,
+      "a4:88:73:40:9f:20": -85.0,
+      "cc:1b:5a:ac:10:30": -86.0,
+      "cc:1b:5a:6c:32:c0": -84.0,
+      "cc:1b:5a:6c:10:30": -85.0
+    },
+    "rssi_std": {
+      "a4:88:73:40:97:cf": 2.26,
+      "f8:3d:c6:6e:8a:e3": 3.09,
+      "a4:88:73:40:b7:af": 6.78,
+      "7e:f5:57:a7:17:6b": 0.0,
+      "a4:88:73:42:0e:af": 4.5,
+      "a4:88:73:42:0e:ae": 4.5,
+      "a4:88:73:40:7d:cf": 2.45,
+      "a4:88:73:40:7d:ce": 2.6,
+      "cc:1b:5a:ac:bb:60": 5.24,
+      "18:48:59:5a:4d:bd": 3.53,
+      "a4:88:73:40:54:ef": 1.74,
+      "a4:88:73:40:b2:0e": 0.0,
+      "a4:88:73:40:b2:0f": 0.0,
+      "ec:1b:5f:e9:a8:62": 1.73,
+      "a4:88:73:40:b7:a0": 0.5,
+      "5e:ec:b0:b5:42:8c": 0.0,
+      "a4:88:73:40:9f:2f": 0.0,
+      "18:48:59:63:fa:85": 0.0,
+      "a4:88:73:40:c5:cf": 0.0,
+      "cc:1b:5a:aa:72:b0": 0.0,
+      "a4:88:73:40:54:e0": 0.0,
+      "a4:88:73:42:0e:a1": 0.0,
+      "a4:88:73:42:0e:a0": 0.0,
+      "3c:84:6a:b6:90:a4": 0.0,
+      "3c:84:6a:b6:90:a5": 1.3,
+      "34:20:e3:05:42:d8": 1.99,
+      "d8:07:b6:f6:ef:c5": 1.3,
+      "a4:88:73:40:96:e0": 1.81,
+      "34:20:e3:05:42:dc": 0.0,
+      "a4:88:73:40:9f:20": 0.0,
+      "cc:1b:5a:ac:10:30": 0.0,
+      "cc:1b:5a:6c:32:c0": 0.0,
+      "cc:1b:5a:6c:10:30": 0.0
+    },
+    "sample_count": 15
   }
 ]

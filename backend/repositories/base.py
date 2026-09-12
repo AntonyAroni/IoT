@@ -48,6 +48,14 @@ class IAttendanceRepository(Protocol):
         """Obtiene la lista de alumnos matriculados en un salón."""
         ...
 
+    def get_student(self, student_id: str) -> Optional[Student]:
+        """Obtiene un estudiante por su ID."""
+        ...
+
+    def get_all_students(self) -> List[Student]:
+        """Obtiene todos los estudiantes del padrón general."""
+        ...
+
     def register_student(self, student: Student) -> None:
         """Registra un alumno en el padrón escolar."""
         ...

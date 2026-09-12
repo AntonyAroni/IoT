@@ -59,8 +59,8 @@ class CalibratorManager(
                 val variance = values.map { (it - mean).pow(2) }.average()
                 val std = sqrt(variance)
 
-                rssiMeans.put(bssid, Math.round(mean * 10.0) / 10.0)
-                rssiStd.put(bssid, Math.round(std * 10.0) / 10.0)
+                rssiMeans.put(bssid, Math.round(mean * 100.0) / 100.0)
+                rssiStd.put(bssid, Math.round(std * 100.0) / 100.0)
             }
 
             // Construir payload JSON

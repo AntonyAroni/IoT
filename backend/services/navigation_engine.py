@@ -85,7 +85,7 @@ class NavigationEngine:
             # Mismo piso, orientación horizontal
             dx = target_node.position.x - current_pos.x
             direction = "hacia tu derecha" if dx > 1.5 else ("hacia tu izquierda" if dx < -1.5 else "en línea recta")
-            dist_str = f"{round(distance_to_room_center, 1)} m"
+            dist_str = f"{distance_to_room_center:.2f} m"
             active_clue = f"📍 Estás en el Piso {current_floor}. Avanza {direction} hacia el {target_node.label} ({dist_str})."
 
         for i, node_id in enumerate(path_ids):
@@ -107,7 +107,7 @@ class NavigationEngine:
                 label=node.label,
                 floor_number=node.floor_number,
                 instruction=step_instr,
-                distance_to_next=dist_next,
+                distance_to_next=round(dist_next, 2),
                 is_vertical=is_vert
             ))
 
@@ -118,10 +118,10 @@ class NavigationEngine:
             current_floor=current_floor,
             target_room_id=target_room_id,
             target_floor=target_floor,
-            total_distance_meters=round(total_distance, 1),
+            total_distance_meters=round(total_distance, 2),
             path_node_ids=path_ids,
             steps=steps,
             active_clue=active_clue,
-            progress_percentage=round(progress, 1),
+            progress_percentage=round(progress, 2),
             has_arrived=has_arrived
         )

@@ -25,7 +25,7 @@ class WebSocketClientManager(
     private val serverWsUrl: String,
     private val studentId: String,
     private val onFeedbackReceived: (MobileNavigationFeedback) -> Unit,
-    private val onStatusChanged: (Boolean) -> Unit
+    private val onStatusChanged: (Boolean, String?) -> Unit
 ) {
     private var webSocket: WebSocket? = null
     private val client = OkHttpClient.Builder()
@@ -37,48 +37,58 @@ class WebSocketClientManager(
     private var isConnected = false
 
     fun connect() {
-        val fullUrl = "$serverWsUrl/ws/mobile/$studentId"
-        val request = Request.Builder().url(fullUrl).build()
+        val cleanBase = serverWsUrl.trim().removeSuffix("/")
+        val fullUrl = "$cleanBase/ws/mobile/$studentId"
+        Log.i("WSClient", "Iniciando conexión WebSocket a: $fullUrl")
 
-        webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(ws: WebSocket, response: Response) {
-                isConnected = true
-                handler.post { onStatusChanged(true) }
-                Log.i("WSClient", "Conectado al Cerebro IPS.")
-            }
+        try {
+            val request = Request.Builder().url(fullUrl).build()
 
-            override fun onMessage(ws: WebSocket, text: String) {
-                try {
-                    val json = JSONObject(text)
-                    if (json.optString("event") == "location_update") {
-                        val feedback = MobileNavigationFeedback(
-                            floorNumber = json.optInt("floor_number", 1),
-                            floorConfidence = json.optDouble("floor_confidence", 1.0),
-                            activeClue = json.optString("active_clue", "Sigue avanzando..."),
-                            progressPercentage = json.optDouble("progress_percentage", 0.0),
-                            distanceMeters = json.optDouble("distance_meters", 0.0),
-                            hasArrived = json.optBoolean("has_arrived", false),
-                            attendanceStatus = json.optString("attendance_status", "ABSENT")
-                        )
-                        handler.post { onFeedbackReceived(feedback) }
-                    }
-                } catch (e: Exception) {
-                    Log.e("WSClient", "Error parseando feedback: ${e.message}")
+            webSocket = client.newWebSocket(request, object : WebSocketListener() {
+                override fun onOpen(ws: WebSocket, response: Response) {
+                    isConnected = true
+                    handler.post { onStatusChanged(true, null) }
+                    Log.i("WSClient", "Conectado al Cerebro IPS en: $fullUrl")
                 }
-            }
 
-            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
-                isConnected = false
-                handler.post { onStatusChanged(false) }
-                Log.w("WSClient", "Fallo en conexión WS: ${t.message}. Reintentando...")
-                handler.postDelayed({ connect() }, 3000)
-            }
+                override fun onMessage(ws: WebSocket, text: String) {
+                    try {
+                        val json = JSONObject(text)
+                        if (json.optString("event") == "location_update") {
+                            val feedback = MobileNavigationFeedback(
+                                floorNumber = json.optInt("floor_number", 1),
+                                floorConfidence = json.optDouble("floor_confidence", 1.0),
+                                activeClue = json.optString("active_clue", "Sigue avanzando..."),
+                                progressPercentage = json.optDouble("progress_percentage", 0.0),
+                                distanceMeters = json.optDouble("distance_meters", 0.0),
+                                hasArrived = json.optBoolean("has_arrived", false),
+                                attendanceStatus = json.optString("attendance_status", "ABSENT")
+                            )
+                            handler.post { onFeedbackReceived(feedback) }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("WSClient", "Error parseando feedback: ${e.message}")
+                    }
+                }
 
-            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
-                isConnected = false
-                handler.post { onStatusChanged(false) }
-            }
-        })
+                override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+                    isConnected = false
+                    val errorMsg = t.localizedMessage ?: t.message ?: (if (response != null) "HTTP ${response.code}" else "Error de red")
+                    handler.post { onStatusChanged(false, errorMsg) }
+                    Log.w("WSClient", "Fallo en conexión WS a $fullUrl: $errorMsg. Reintentando...")
+                    handler.postDelayed({ connect() }, 3000)
+                }
+
+                override fun onClosed(ws: WebSocket, code: Int, reason: String) {
+                    isConnected = false
+                    handler.post { onStatusChanged(false, if (reason.isNotEmpty()) reason else "Desconectado ($code)") }
+                }
+            })
+        } catch (e: Exception) {
+            isConnected = false
+            handler.post { onStatusChanged(false, e.localizedMessage ?: "URL inválida") }
+            Log.e("WSClient", "Error creando WebSocket request: ${e.message}")
+        }
     }
 
     fun sendScanVector(readingsMap: Map<String, Double>, targetRoomId: String) {
@@ -87,6 +97,7 @@ class WebSocketClientManager(
         try {
             val json = JSONObject().apply {
                 put("timestamp", System.currentTimeMillis() / 1000.0)
+                put("student_id", studentId)
                 put("target_room_id", targetRoomId)
                 val readingsObj = JSONObject()
                 for ((bssid, rssi) in readingsMap) {

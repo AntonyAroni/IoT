@@ -78,6 +78,53 @@
                 android:paddingRight="12dp" />
         </LinearLayout>
 
+        <!-- Barra de Identidad de Alumno / Dispositivo Móvil -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#1e293b"
+            android:padding="12dp"
+            android:layout_marginTop="8dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvStudentInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Alumno: EST_08"
+                    android:textColor="#38bdf8"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTargetRoomInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Destino: Aula S302"
+                    android:textColor="#94a3b8"
+                    android:textSize="11sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnConfigUser"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="Cambiar Alumno"
+                android:textSize="11sp"
+                android:backgroundTint="#475569"
+                android:textColor="#ffffff"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp" />
+        </LinearLayout>
+
         <!-- Tarjeta de Pista Activa -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -179,6 +226,36 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <EditText
+                    android:id="@+id/etCoordX"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Coord X (m)"
+                    android:inputType="numberDecimal"
+                    android:text="10.00"
+                    android:textColor="#ffffff"
+                    android:textColorHint="#9ca3af" />
+
+                <EditText
+                    android:id="@+id/etCoordY"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Coord Y (m)"
+                    android:inputType="numberDecimal"
+                    android:text="2.00"
+                    android:textColor="#ffffff"
+                    android:textColorHint="#9ca3af"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvSampleCounter"
