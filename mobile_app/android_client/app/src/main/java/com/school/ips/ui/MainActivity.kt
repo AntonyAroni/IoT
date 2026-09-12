@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnUploadCalibration: Button
     private lateinit var tvSampleCounter: TextView
     private lateinit var etRpId: EditText
+    private lateinit var etCoordX: EditText
+    private lateinit var etCoordY: EditText
     private lateinit var spinnerFloor: Spinner
 
     // Configuración y Persistencia
@@ -103,6 +105,8 @@ class MainActivity : AppCompatActivity() {
         btnUploadCalibration = findViewById(R.id.btnUploadCalibration)
         tvSampleCounter = findViewById(R.id.tvSampleCounter)
         etRpId = findViewById(R.id.etRpId)
+        etCoordX = findViewById(R.id.etCoordX)
+        etCoordY = findViewById(R.id.etCoordY)
         spinnerFloor = findViewById(R.id.spinnerFloor)
 
         val floorAdapter = ArrayAdapter(
@@ -169,6 +173,21 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Las coordenadas son obligatorias: un punto de referencia sin posición real no
+            // sirve para nada, ni para el WKNN ni para la validación. Antes estaban fijadas en
+            // el código y las capturas de campo se guardaban todas en (10.0, 2.0).
+            val coordX = etCoordX.text.toString().trim().toFloatOrNull()
+            val coordY = etCoordY.text.toString().trim().toFloatOrNull()
+            if (coordX == null || coordY == null) {
+                Toast.makeText(
+                    this,
+                    "Indica las coordenadas X e Y del punto, en metros. Sin posición real la " +
+                        "huella no sirve como punto de referencia.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
             val cal = calibrator
             if (cal == null) {
                 Toast.makeText(this, "Servicio de calibración no inicializado", Toast.LENGTH_SHORT).show()
@@ -179,9 +198,9 @@ class MainActivity : AppCompatActivity() {
                 val result = cal.uploadCalibrationPoint(
                     rpId = rpId,
                     floorNumber = floor,
-                    x = 10.0f,
-                    y = 2.0f,
-                    label = "Punto Calibrado $rpId"
+                    x = coordX,
+                    y = coordY,
+                    label = "Punto Calibrado $rpId (${coordX}m, ${coordY}m)"
                 )
                 if (result.isSuccess) {
                     tvSampleCounter.text = "Muestras recolectadas: 0 / 15"

@@ -180,6 +180,39 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
 
+            <!--
+                Coordenadas del punto de referencia, en metros. Estaban fijadas en el código
+                (x=10.0, y=2.0), de modo que toda captura de campo se guardaba en la misma
+                posición y quedaba inservible como punto de referencia.
+            -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <EditText
+                    android:id="@+id/etCoordX"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:hint="X en metros"
+                    android:inputType="numberDecimal|numberSigned"
+                    android:textColor="#ffffff"
+                    android:textColorHint="#9ca3af" />
+
+                <EditText
+                    android:id="@+id/etCoordY"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:hint="Y en metros"
+                    android:inputType="numberDecimal|numberSigned"
+                    android:textColor="#ffffff"
+                    android:textColorHint="#9ca3af"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/tvSampleCounter"
                 android:layout_width="wrap_content"

@@ -165,8 +165,20 @@ presentarlo como datos empíricos es el punto más atacable del proyecto en una 
 - [x] **Extra:** §5 añade una salvedad honesta sobre el DIP — la capa de API usa un localizador
       de servicios (`from ..main import app_state` dentro de la función), no inyección de
       dependencias.
-- [ ] (Si hay tiempo) tomar una campaña de campo real aunque sea de 8-10 RPs y reportarla por
-      separado. Diferenciar claramente "simulado" de "medido" vale más que un número alto.
+- [ ] **Requiere presencia física: la medición es tuya, no puedo hacerla.** Tomar una campaña de
+      campo real, aunque sea de 8-10 RPs, y reportarla por separado del dataset sintético.
+
+      **Bloqueos eliminados (2026-09-12)** para que la campaña no vuelva a desperdiciarse:
+
+- [x] **Causa raíz del intento fallido anterior corregida.** `MainActivity` enviaba las
+      coordenadas fijadas en el código (`x = 10.0f, y = 2.0f`) y la interfaz ni siquiera las
+      pedía: por eso las tres capturas de campo existentes están las tres en (10.0, 2.0) y son
+      inservibles. Ahora el formulario tiene campos X e Y y **rechaza el envío si faltan**.
+- [x] Añadido `data/field_captures/PROTOCOLO_CAMPANA.md`: origen de coordenadas y ejes, densidad
+      mínima, altura y orientación del teléfono, edificio en uso, seudonimización de BSSID antes
+      de commitear, y qué esperar (3–5 m según la literatura, no los 1.70 m de la simulación).
+- [x] Verificado que `loocv_evaluator.py --map <fichero de campo>` funciona sobre un radio-mapa
+      alternativo, que es el comando con el que el protocolo indica validar la campaña.
 
 **Criterio de aceptación:** ✅ ningún documento afirma medición física donde hubo simulación.
 
@@ -214,10 +226,11 @@ puerta en tres días distintos confirman la asistencia igual.
 - [x] Tests añadidos en `TestPermanenceWindowExpiry`: 2 muestras válidas + salto de 60 s ⇒ no
       confirma; 3 muestras separadas 5 s ⇒ sí confirma. El salto temporal se simula con
       `mock.patch` sobre `time.time`.
-- [ ] Guardar los timestamps de las N muestras para una ventana verdaderamente deslizante. La
-      implementación actual mide el hueco entre lecturas consecutivas, que es la semántica que
-      documenta el propio `config.py` ("tiempo máximo entre lecturas consecutivas"). Para exigir
-      permanencias largas (p. ej. confirmar tras 5 minutos en el aula) haría falta lo otro.
+- [x] Guardar los timestamps de las N muestras. → `AttendanceRecord.window_sample_times` sustituye
+      al contador; `samples_in_window` pasa a ser una propiedad derivada y se añade
+      `dwell_seconds`. Habilita `AttendanceConfig.minimum_dwell_seconds` (0 por defecto, que
+      conserva el comportamiento anterior), con el que ya se puede exigir "confirmar tras N
+      minutos en el aula" y no solo "N lecturas seguidas". 5 pruebas nuevas.
 
 **Criterio de aceptación:** ✅ los tests pasan y `window_timeout_seconds` se usa en
 `attendance_tracker.py`.
