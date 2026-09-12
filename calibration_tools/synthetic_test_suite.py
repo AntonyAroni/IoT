@@ -20,6 +20,7 @@ from backend.domain.building import Point2D
 from backend.domain.fingerprint import FingerprintVector
 from backend.domain.attendance import AttendanceStatus
 from mobile_app.virtual_sensor.virtual_scanner import VirtualMobileSensor, SimulatedAP
+from calibration_tools.console import enable_unicode_output
 
 # ==============================================================================
 # TEST 1: SIMULACIÓN CONCURRENTE MULTI-ESTUDIANTE (3 ALUMNOS SIMULTÁNEOS)
@@ -282,5 +283,7 @@ def run_all_synthetic_tests():
     print(f" ✅ TODAS LAS PRUEBAS SINTÉTICAS (4/4) FUERON SUPERADAS EXITOSAMENTE EN {elapsed}s")
     print("#"*80 + "\n")
 
+
 if __name__ == "__main__":
+    enable_unicode_output()
     run_all_synthetic_tests()

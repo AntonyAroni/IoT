@@ -29,6 +29,7 @@ from backend.domain.attendance import AttendanceStatus
 from backend.domain.building import Point2D
 from backend.repositories.attendance_repo import InMemoryAttendanceRepository
 from backend.services.attendance_tracker import AttendanceTrackerService
+from calibration_tools.console import enable_unicode_output
 
 ROOM_ID = "S302"
 ROOM_FLOOR = 3
@@ -304,5 +305,7 @@ def main() -> None:
     )
 
 
+
 if __name__ == "__main__":
+    enable_unicode_output()
     main()

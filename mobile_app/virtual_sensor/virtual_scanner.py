@@ -8,6 +8,7 @@ import asyncio
 import json
 import math
 import random
+import sys
 import time
 from typing import Dict, List, Tuple
 
@@ -129,6 +130,18 @@ class VirtualMobileSensor:
         except Exception as e:
             print(f"❌ Error en la simulación del sensor móvil: {e}")
 
+
 if __name__ == "__main__":
+    # Equivalente a `calibration_tools.console.enable_unicode_output()`, replicado aquí a
+    # propósito: el simulador del cliente móvil no debe depender del paquete de herramientas de
+    # calibración. Sin esto, la salida con emojis aborta en consolas cp1252.
+    for _stream in (sys.stdout, sys.stderr):
+        _reconfigure = getattr(_stream, "reconfigure", None)
+        if _reconfigure is not None:
+            try:
+                _reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):
+                pass
+
     sensor = VirtualMobileSensor()
     asyncio.run(sensor.run_scenario())

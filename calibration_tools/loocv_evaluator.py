@@ -31,6 +31,7 @@ from backend.domain.fingerprint import FingerprintVector
 from backend.repositories.radio_map_repo import InMemoryRadioMapRepository
 from backend.services.floor_classifier import FloorClassifierService
 from backend.services.wknn_locator import WKNNPositioningService
+from calibration_tools.console import enable_unicode_output
 
 DEFAULT_MAP = "data/radio_map.json"
 DEFAULT_K_VALUES = [1, 2, 3, 4, 5]
@@ -186,5 +187,7 @@ def main() -> None:
     )
 
 
+
 if __name__ == "__main__":
+    enable_unicode_output()
     main()

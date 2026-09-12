@@ -1,0 +1,3 @@
+# Dependencias de las herramientas de calibración, validación y auditoría.
+# Requieren además las del servidor: pip install -r backend/requirements.txt
+numpy>=1.26.0
