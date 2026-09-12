@@ -3,6 +3,7 @@ Controlador HTTP: Consulta y Gestión de Asistencia Escolar.
 Permite que el Dashboard de Aula en la laptop consulte el padrón y estados en tiempo real.
 """
 from fastapi import APIRouter, Depends, HTTPException
+from .security import require_admin
 from typing import List, Dict, Any
 from ..repositories.base import IAttendanceRepository
 from ..domain.attendance import AttendanceStatus
@@ -32,7 +33,7 @@ def get_room_attendance(room_id: str, repo: IAttendanceRepository = Depends(get_
         "records": [r.to_dict() for r in records]
     }
 
-@router.post("/room/{room_id}/reset")
+@router.post("/room/{room_id}/reset", dependencies=[Depends(require_admin)])
 def reset_room_attendance(room_id: str, repo: IAttendanceRepository = Depends(get_attendance_repo)) -> Dict[str, str]:
     """Reinicia la asistencia del aula para iniciar una nueva clase o demo."""
     records = repo.get_room_records(room_id)

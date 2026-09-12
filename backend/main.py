@@ -64,6 +64,13 @@ async def lifespan(app: FastAPI):
     logger.info(f" Salones Registrados: {sum(len(f.rooms) for f in app_state.floors.values())}")
     logger.info(f" Puntos de Referencia Calibrados: {calibrated_points}")
     logger.info(f" Radio-Mapa: {config.server.radio_map_file}")
+    if config.security.requires_token:
+        logger.info(" Operaciones destructivas: requieren cabecera X-Admin-Token")
+    else:
+        logger.info(" Operaciones destructivas: solo desde la máquina local")
+        logger.info("   (define IPS_ADMIN_TOKEN para permitirlas desde la red)")
+    origins = config.server.allowed_origins
+    logger.info(f" CORS: {', '.join(origins) if origins else 'solo mismo origen'}")
     logger.info("=======================================================")
 
     # Un IPS sin radio-mapa no falla: devuelve piso 1 y una posición por defecto para todos,
@@ -89,13 +96,25 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Habilitar CORS para permitir conexión desde cualquier laptop o smartphone en la red local
+# CORS restringido.
+#
+# La configuración anterior combinaba `allow_origins=["*"]` con `allow_credentials=True`.
+# Starlette resuelve esa combinación reflejando el Origin de quien pregunta, de modo que no
+# fallaba de forma visible: simplemente concedía acceso con credenciales a cualquier sitio web.
+#
+# El tablero de aula no necesita CORS en absoluto. Se sirve desde este mismo servidor bajo
+# `/estacion`, pide la API con rutas relativas y construye la URL del WebSocket a partir de
+# `window.location`, así que todas sus peticiones son del mismo origen. Los clientes Android
+# tampoco lo necesitan: CORS es una política de navegadores.
+#
+# Por eso la lista por defecto está vacía. Solo hay que rellenar `IPS_ALLOWED_ORIGINS` si el
+# frontend llega a desplegarse en otro dominio.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=config.server.allowed_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "DELETE"],
+    allow_headers=["Content-Type", "X-Admin-Token"],
 )
 
 # Registrar Routers de la API y WebSockets

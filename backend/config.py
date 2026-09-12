@@ -10,6 +10,7 @@ entorno para despliegue.
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import List, Optional
 
 # backend/config.py -> backend/ -> raíz del proyecto
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -106,6 +107,46 @@ class AttendanceConfig:
     approaching_radius_meters: float = 9.0
 
 
+def _resolve_origins() -> List[str]:
+    """
+    Orígenes autorizados para peticiones cross-origin, desde `IPS_ALLOWED_ORIGINS`.
+
+    Por defecto la lista está **vacía**, y es lo correcto: el tablero de aula se sirve desde el
+    propio servidor (`/estacion`), usa rutas relativas y toma el host del WebSocket de
+    `window.location`, así que nunca hace una petición cross-origin. Solo hay que rellenar esta
+    variable si el frontend se despliega en otro dominio.
+    """
+    raw = os.environ.get("IPS_ALLOWED_ORIGINS", "")
+    return [origin.strip() for origin in raw.split(",") if origin.strip()]
+
+
+@dataclass(frozen=True)
+class SecurityConfig:
+    """
+    Control de acceso a las operaciones que modifican o destruyen datos.
+
+    No es autenticación de usuarios: el sistema todavía no tiene padrón ni credenciales por
+    alumno. Lo que cubre es el riesgo operativo de que los endpoints destructivos estén
+    expuestos de forma anónima a toda la red local, donde una petición accidental durante una
+    prueba borra el radio-mapa completo.
+
+    Comportamiento:
+
+    - Con `IPS_ADMIN_TOKEN` definido, esas operaciones exigen la cabecera `X-Admin-Token`.
+    - Sin definir, solo se aceptan desde la máquina local (127.0.0.1 / ::1). Así la demostración
+      y el desarrollo siguen funcionando sin configurar nada, pero la red queda cerrada.
+    """
+    admin_token: Optional[str] = field(
+        default_factory=lambda: os.environ.get("IPS_ADMIN_TOKEN") or None
+    )
+    # Direcciones consideradas locales cuando no hay token configurado.
+    loopback_hosts: tuple = ("127.0.0.1", "::1", "localhost", "testclient")
+
+    @property
+    def requires_token(self) -> bool:
+        return self.admin_token is not None
+
+
 @dataclass(frozen=True)
 class ServerConfig:
     """Configuración del servidor FastAPI y WebSockets."""
@@ -115,6 +156,7 @@ class ServerConfig:
     radio_map_file: str = field(
         default_factory=lambda: _resolve_data_path("IPS_RADIO_MAP_PATH", "data/radio_map.json")
     )
+    allowed_origins: List[str] = field(default_factory=_resolve_origins)
     attendance_log_file: str = field(
         default_factory=lambda: _resolve_data_path("IPS_ATTENDANCE_LOG_PATH", "data/attendance_log.json")
     )
@@ -125,6 +167,7 @@ class SystemConfig:
     wknn: WKNNConfig = field(default_factory=WKNNConfig)
     attendance: AttendanceConfig = field(default_factory=AttendanceConfig)
     server: ServerConfig = field(default_factory=ServerConfig)
+    security: SecurityConfig = field(default_factory=SecurityConfig)
 
 
 # Instancia global por defecto

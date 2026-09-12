@@ -3,6 +3,7 @@ Controlador HTTP: Modo Calibración y Gestión del Radio-Mapa (Fase Offline).
 Permite que el sensor móvil o herramienta de calibración registre puntos de referencia (RPs).
 """
 from fastapi import APIRouter, HTTPException, Depends
+from .security import require_admin
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
 from ..domain.building import Point2D
@@ -26,7 +27,7 @@ class CalibrationUploadModel(BaseModel):
     rssi_std: Optional[Dict[str, float]] = Field(default_factory=dict)
     sample_count: int = Field(15, ge=1)
 
-@router.post("/record")
+@router.post("/record", dependencies=[Depends(require_admin)])
 def record_calibration_point(
     payload: CalibrationUploadModel,
     repo: IRadioMapRepository = Depends(get_radio_map_repo)
@@ -57,7 +58,7 @@ def get_radio_map(repo: IRadioMapRepository = Depends(get_radio_map_repo)) -> Li
     """Descarga el radio-mapa completo actual."""
     return [entry.to_dict() for entry in repo.get_all_entries()]
 
-@router.delete("/radio-map")
+@router.delete("/radio-map", dependencies=[Depends(require_admin)])
 def clear_radio_map(repo: IRadioMapRepository = Depends(get_radio_map_repo)) -> Dict[str, str]:
     """Limpia el radio-mapa en memoria y almacenamiento."""
     repo.clear()

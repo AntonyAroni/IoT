@@ -305,6 +305,41 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 > `IPS_RADIO_MAP_PATH` e `IPS_ATTENDANCE_LOG_PATH`. Si el radio-mapa carga vacío, el arranque lo
 > advierte de forma explícita en el log en lugar de degradarse en silencio.
 
+#### Operaciones destructivas
+
+Tres endpoints modifican o destruyen datos: borrar el radio-mapa, registrar un punto de
+calibración (que puede envenenarlo) y reiniciar la asistencia de un aula. Estaban expuestos de
+forma anónima a toda la red local, donde una petición accidental durante una prueba borra la
+calibración del edificio.
+
+| Modo | Cuándo | Comportamiento |
+| :--- | :--- | :--- |
+| **Local** (por defecto) | `IPS_ADMIN_TOKEN` sin definir | Solo se aceptan desde la propia máquina; las peticiones remotas reciben 403 |
+| **Con token** | `IPS_ADMIN_TOKEN` definido | Exigen la cabecera `X-Admin-Token`; sin ella, 401 desde cualquier origen |
+
+```bash
+# Permitirlas desde la red
+IPS_ADMIN_TOKEN=una-cadena-larga-y-aleatoria uvicorn backend.main:app --host 0.0.0.0
+
+curl -X DELETE http://<servidor>:8000/api/v1/calibration/radio-map \
+     -H "X-Admin-Token: una-cadena-larga-y-aleatoria"
+```
+
+El arranque informa en qué modo está. Las consultas de solo lectura siguen siendo públicas, que
+es lo que necesita el tablero de aula.
+
+> ⚠️ **Esto no es autenticación de usuarios.** El canal `/ws/mobile/{student_id}` sigue aceptando
+> cualquier identificador que se le envíe, de modo que un dispositivo puede declarar ser otro
+> alumno. Añadir una credencial por dispositivo es trabajo pendiente (P0-4 en
+> `PLAN_CORRECCIONES.md`). Lo que cubre esta medida es el riesgo operativo, no la suplantación.
+
+#### CORS
+
+El tablero se sirve desde este mismo servidor, pide la API con rutas relativas y construye la URL
+del WebSocket desde `window.location`: **nunca hace peticiones cross-origin**. Por eso la lista de
+orígenes autorizados está vacía por defecto. Si el frontend llega a desplegarse en otro dominio,
+se declara con `IPS_ALLOWED_ORIGINS` (separados por comas).
+
 #### Endpoints disponibles
 
 | Método | Ruta | Descripción |

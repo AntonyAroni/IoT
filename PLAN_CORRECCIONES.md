@@ -8,7 +8,7 @@
 
 | Prioridad | Secciones | Estado | Descripción |
 | :--- | :---: | :--- | :--- |
-| **P0 — Bloqueante** | 4 | 3 ✅ / 1 aplazada | Invalidan métricas publicadas o el propósito del sistema |
+| **P0 — Bloqueante** | 4 | 3 ✅ / 1 🟡 parcial | Invalidan métricas publicadas o el propósito del sistema |
 | **P1 — Alto** | 5 | **5 ✅** | Funcionalidad documentada que no existe, o bugs visibles al usuario |
 | **P2 — Medio** | 7 | **7 ✅** | Deuda técnica, build y limpieza |
 | **P3 — Documentación** | 1 | **1 ✅** | Sincronizar README y reporte con el código real |
@@ -16,9 +16,10 @@
 **Cerrado:** P0-1, P0-2, P0-3, y todo P1, P2 y P3. El sistema hace lo que su documentación dice,
 las métricas son reproducibles y los bugs visibles al usuario están corregidos.
 
-**Aplazado por decisión del usuario:** P0-4 (autenticación).
+**Parcial:** P0-4 — hechos los endpoints destructivos y el CORS; la credencial por dispositivo
+queda pendiente por decisión del usuario (todavía no hay usuarios registrados).
 
-**Suite de pruebas:** 11 → **37** pruebas, todas pasando, sin tocar `data/`.
+**Suite de pruebas:** 11 → **50** pruebas, todas pasando, sin tocar `data/`.
 
 > **Nota sobre las cifras de este documento.** Los bloques de resultados de cada tarea recogen lo
 > medido **en el momento de cerrarla**. P2-4 descubrió después que el generador declaraba
@@ -184,7 +185,20 @@ presentarlo como datos empíricos es el punto más atacable del proyecto en una 
 
 ---
 
-### P0-4 · Autenticación en el canal móvil (suplantación de asistencia)
+### P0-4 · Autenticación en el canal móvil (suplantación de asistencia) — 🟡 PARCIAL (2026-09-12)
+
+> **Hecho:** endpoints destructivos protegidos y CORS restringido, que son riesgo operativo y no
+> dependen de tener padrón de usuarios.
+>
+> **Pendiente por decisión del usuario:** la credencial por dispositivo. El proyecto aún no tiene
+> usuarios registrados; el plan es registrar dispositivos y hacer pruebas funcionales. Registrar
+> dispositivos **es** la respuesta a esta tarea, en su versión simple: un token pre-compartido por
+> móvil, sin padrón ni pantalla de login. Hasta entonces, `/ws/mobile/{student_id}` acepta
+> cualquier identificador que se le declare.
+>
+> **Límite inherente que conviene declarar en la memoria:** atar la identidad al dispositivo no
+> impide que un alumno preste el móvil a otro. Le pasa a cualquier sistema de asistencia por
+> dispositivo y no se resuelve con criptografía, sino con controles fuera de banda.
 
 **[verificado]** `backend/api/websocket_handlers.py:52` expone `/ws/mobile/{student_id}` sin
 ninguna credencial. El `student_id` llega como texto libre en la ruta. Marcar la asistencia de
@@ -196,11 +210,29 @@ asistencia, esto anula el propósito del proyecto.
 - [ ] Emitir un token por alumno (JWT firmado o token opaco pre-provisionado) y validarlo en el
       handshake del WebSocket antes de `connect_mobile()`.
 - [ ] Derivar el `student_id` **del token**, nunca de la ruta.
-- [ ] Proteger también los endpoints mutantes: `DELETE /api/v1/calibration/radio-map`,
-      `POST /api/v1/calibration/record` y `POST /api/v1/attendance/room/{id}/reset` hoy son
-      anónimos y destructivos.
-- [ ] Restringir el CORS: `allow_origins=["*"]` junto a `allow_credentials=True`
-      (`backend/main.py`) es una combinación inválida además de insegura.
+- [x] Proteger los endpoints mutantes. → `backend/api/security.py` con la dependencia
+      `require_admin`, aplicada a los tres. Dos modos: con `IPS_ADMIN_TOKEN` exigen la cabecera
+      `X-Admin-Token`; sin él, solo se aceptan desde la máquina local. El segundo es un valor por
+      defecto deliberado: fallar cerrado del todo obligaría a configurar un token para ejecutar
+      `demo_runner.py`, y lo previsible sería que alguien desactivara la comprobación entera.
+      8 pruebas nuevas, incluida una que verifica que las consultas de solo lectura siguen
+      públicas (el tablero de aula las necesita).
+- [x] Restringir el CORS. → `allow_origins` desde `IPS_ALLOWED_ORIGINS`, vacío por defecto, y
+      `allow_credentials=False`.
+
+      **Corrección al diagnóstico original.** Este documento afirmaba que `allow_origins=["*"]`
+      con `allow_credentials=True` era "una combinación inválida que los navegadores rechazan".
+      Es falso, y el caso real era peor: Starlette refleja el `Origin` de quien pregunta, así
+      que no fallaba de forma visible y concedía acceso con credenciales a **cualquier** sitio
+      web. Verificado ejecutándolo:
+
+      ```
+      Origin enviado:                    https://atacante.example
+      Access-Control-Allow-Origin:       https://atacante.example
+      Access-Control-Allow-Credentials:  true
+      ```
+
+      El tablero no necesita CORS en absoluto: es same-origin y no usa credenciales.
 - [ ] Servir por TLS y cambiar a `wss://`; quitar `usesCleartextTraffic="true"` del
       `AndroidManifest.xml`.
 
