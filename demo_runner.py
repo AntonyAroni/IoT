@@ -12,9 +12,7 @@ import uvicorn
 import multiprocessing
 from backend.main import app
 from mobile_app.virtual_sensor.virtual_scanner import VirtualMobileSensor
-
-def start_server():
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+from calibration_tools.console import enable_unicode_output
 
 async def run_end_to_end_demo(port: int = 8000):
     import websockets
@@ -48,6 +46,11 @@ async def run_end_to_end_demo(port: int = 8000):
             pass
         except Exception:
             pass
+
+    # Desde que la asistencia se persiste entre arranques, el estado de una ejecución anterior
+    # sobrevive y el alumno aparecería ya confirmado en el primer paso. Reiniciar el aula deja
+    # la demostración reproducible.
+    reset_room_attendance(port, "S302")
 
     async with websockets.connect(ws_laptop_url) as ws_laptop:
         # Snapshot inicial
@@ -119,6 +122,19 @@ def find_available_port(start_port: int = 8000) -> int:
 def start_server(port: int):
     uvicorn.run(app, host="127.0.0.1", port=port, log_level="warning")
 
+def reset_room_attendance(port: int, room_id: str) -> None:
+    """Deja el aula sin asistencias confirmadas para que la demostración parta de cero."""
+    import urllib.request
+    url = f"http://127.0.0.1:{port}/api/v1/attendance/room/{room_id}/reset"
+    try:
+        request = urllib.request.Request(url, method="POST")
+        with urllib.request.urlopen(request, timeout=2.0) as response:
+            if response.status == 200:
+                print(f"🔄 Asistencia del aula {room_id} reiniciada para la demostración.\n")
+    except Exception as e:
+        print(f"⚠️ No se pudo reiniciar la asistencia de {room_id}: {e}")
+
+
 def is_server_running(port: int) -> bool:
     import urllib.request
     try:
@@ -155,5 +171,7 @@ def main():
             server_process.terminate()
             server_process.join()
 
+
 if __name__ == "__main__":
+    enable_unicode_output()
     main()

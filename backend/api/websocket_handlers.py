@@ -87,6 +87,12 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
         return
 
     await manager.connect_mobile(websocket, student_id)
+
+    # Distancia de la ruta cuando el alumno empezó a navegar hacia cada destino. El motor de
+    # navegación no guarda estado entre llamadas, así que la sesión la mantiene aquí para poder
+    # expresar el progreso como fracción del trayecto ya recorrido.
+    route_origin_distance: dict = {}
+
     try:
         while True:
             raw_text = await websocket.receive_text()
@@ -114,7 +120,22 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
             target_floor = target_node.floor_number if target_node else 3
             target_center = target_node.position if target_node else Point2D(10.0, 2.0)
 
-            route = nav_engine.compute_route(detected_floor, est_pos, target_room_id)
+            known_origin = route_origin_distance.get(target_room_id)
+            route = nav_engine.compute_route(
+                detected_floor, est_pos, target_room_id,
+                initial_distance_meters=known_origin
+            )
+
+            # La primera ruta hacia este destino fija el origen del progreso. Si el alumno se
+            # aleja y la ruta se alarga más allá del punto de partida, se reancla, de modo que
+            # el progreso no quede clavado en 0% durante el resto de la sesión.
+            if known_origin is None or route.total_distance_meters > known_origin:
+                route_origin_distance[target_room_id] = route.total_distance_meters
+
+            if known_origin is None and not route.has_arrived:
+                # En la primera lectura el alumno está en el punto de partida por definición,
+                # así que el progreso es 0% y no un valor indeterminado.
+                route.progress_percentage = 0.0
 
             # 4. Rastreo de Asistencia y Permanencia
             # Buscar si alguna de las lecturas corresponde al AP del aula meta

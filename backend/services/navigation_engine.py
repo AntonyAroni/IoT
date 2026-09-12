@@ -26,7 +26,10 @@ class NavigationRoute:
     path_node_ids: List[str]
     steps: List[NavigationStep]
     active_clue: str             # Pista inmediata para mostrar en la pantalla del móvil
-    progress_percentage: float  # Estimación del avance hacia la meta (0 a 100)
+    # Avance hacia la meta (0 a 100). Es None cuando no puede determinarse porque no se conoce
+    # la distancia de partida: el motor no guarda estado entre llamadas, así que quien mantiene
+    # la sesión (el manejador de WebSocket) debe aportarla.
+    progress_percentage: Optional[float]
     has_arrived: bool
 
 class NavigationEngine:
@@ -35,22 +38,41 @@ class NavigationEngine:
         self.floors = floors
 
     def find_closest_node(self, floor_number: int, position: Point2D) -> str:
-        """Encuentra el nodo del grafo más cercano a una posición estimada en un piso dado."""
+        """
+        Encuentra el nodo del grafo más cercano a una posición estimada en un piso dado.
+
+        Si el piso no existe en el grafo se recurre al nodo más cercano de cualquier piso, en
+        lugar de fabricar un identificador. El fallback anterior devolvía `P{n}_Hall_Center`,
+        que para un piso inexistente es un ID que no está en el grafo y hacía que Dijkstra
+        lanzara ValueError, cerrando el WebSocket del alumno.
+        """
         candidates = [
             node for node in self.graph.nodes.values()
             if node.floor_number == floor_number
         ]
         if not candidates:
-            # Fallback a cualquier nodo del piso
-            return f"P{floor_number}_Hall_Center"
+            if not self.graph.nodes:
+                raise ValueError("El grafo del edificio está vacío: no hay ningún nodo de partida.")
+            candidates = list(self.graph.nodes.values())
 
         closest = min(candidates, key=lambda n: n.position.distance_to(position))
         return closest.id
 
-    def compute_route(self, current_floor: int, current_pos: Point2D, target_room_id: str) -> NavigationRoute:
+    def compute_route(
+        self,
+        current_floor: int,
+        current_pos: Point2D,
+        target_room_id: str,
+        initial_distance_meters: Optional[float] = None
+    ) -> NavigationRoute:
         """
         Calcula la ruta completa desde la ubicación estimada hasta el salón destino,
         generando pistas contextuales claras.
+
+        `initial_distance_meters` es la longitud de la ruta cuando el alumno empezó a navegar.
+        Sirve para expresar el progreso como fracción recorrida. Si no se aporta, el progreso
+        queda indeterminado (None) en lugar de inventarse: el motor no guarda estado entre
+        llamadas y no puede saber desde dónde partió el alumno.
         """
         target_node = self.graph.get_node(target_room_id)
         if not target_node:
@@ -100,7 +122,10 @@ class NavigationEngine:
 
             step_instr = f"Avanzar a {node.label}"
             if node.node_type == NodeType.STAIRCASE and is_vert:
-                step_instr = f"Usar escalera hacia el Piso {path_ids[i+1]}"
+                # `next_node.floor_number`, no `path_ids[i+1]`: interpolar el ID producía
+                # instrucciones como "Usar escalera hacia el Piso Escalera_P2".
+                direction_verb = "Subir" if next_node.floor_number > node.floor_number else "Bajar"
+                step_instr = f"{direction_verb} por la escalera al Piso {next_node.floor_number}"
 
             steps.append(NavigationStep(
                 node_id=node.id,
@@ -111,8 +136,17 @@ class NavigationEngine:
                 is_vertical=is_vert
             ))
 
-        # Cálculo de progreso aproximado
-        progress = 100.0 if has_arrived else max(0.0, min(95.0, 100.0 - (total_distance * 4.0)))
+        # Progreso como fracción de la ruta ya recorrida.
+        # La fórmula anterior, `100 - distancia * 4`, asumía implícitamente que toda ruta mide
+        # 25 m: daba 0% para cualquier trayecto de 25 m o más (el recorrido de la demo empieza
+        # en 29 m) y saltaba de 52% a 100% en dos pasos.
+        if has_arrived:
+            progress = 100.0
+        elif initial_distance_meters and initial_distance_meters > 0.0:
+            travelled = 1.0 - (total_distance / initial_distance_meters)
+            progress = round(max(0.0, min(99.0, travelled * 100.0)), 1)
+        else:
+            progress = None
 
         return NavigationRoute(
             current_floor=current_floor,
@@ -122,6 +156,6 @@ class NavigationEngine:
             path_node_ids=path_ids,
             steps=steps,
             active_clue=active_clue,
-            progress_percentage=round(progress, 1),
+            progress_percentage=progress,
             has_arrived=has_arrived
         )
