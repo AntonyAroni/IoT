@@ -53,8 +53,14 @@ class MainActivity : AppCompatActivity() {
     private val prefs by lazy { getSharedPreferences("ips_config", Context.MODE_PRIVATE) }
     private var currentServerIp: String = ""
     private val currentServerPort: Int = 8000
-    private val studentId = "EST_08"
-    private val targetRoomId = "S302"
+
+    // Identidad del alumno y aula asignada. Estaban fijados como constantes, de modo que todo
+    // dispositivo con el APK instalado se identificaba como el mismo alumno. Se persisten en
+    // SharedPreferences igual que la IP del servidor, y el diálogo inicial los solicita.
+    // Nota: esto identifica, no autentica. El servidor acepta cualquier identificador que se le
+    // envíe; añadir un token por alumno sigue pendiente.
+    private var studentId: String = DEFAULT_STUDENT_ID
+    private var targetRoomId: String = DEFAULT_ROOM_ID
 
     // Buffer de últimas lecturas Wi-Fi recibidas
     private var latestWifiReadings: List<WifiReading> = emptyList()
@@ -76,6 +82,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadSavedServerConfig() {
         currentServerIp = prefs.getString("server_ip", "") ?: ""
+        studentId = prefs.getString("student_id", DEFAULT_STUDENT_ID) ?: DEFAULT_STUDENT_ID
+        targetRoomId = prefs.getString("target_room_id", DEFAULT_ROOM_ID) ?: DEFAULT_ROOM_ID
     }
 
     private fun initViews() {
@@ -124,8 +132,13 @@ class MainActivity : AppCompatActivity() {
             latestWifiReadings = readings
             val readingsMap = readings.associate { it.bssid to it.rssi.toDouble() }
 
+            // Potencia del AP del aula destino. Sin este dato el servidor deriva el RSSI de la
+            // posición estimada y el tablero del docente acaba mostrando un valor calculado
+            // como si fuera una medición de radio.
+            val roomApRssi = strongestRssiForRoom(readings, targetRoomId)
+
             // Enviar telemetría en vivo si el WebSocket está conectado
-            wsClient?.sendScanVector(readingsMap, targetRoomId)
+            wsClient?.sendScanVector(readingsMap, targetRoomId, roomApRssi)
         }
 
         updateServerConnection()
@@ -230,26 +243,64 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showServerConfigDialog(isFirstRun: Boolean = false) {
-        val input = EditText(this).apply {
-            hint = "Ej. 192.168.1.50"
+        val ipInput = EditText(this).apply {
+            hint = "IP del servidor, ej. 192.168.1.50"
             setText(currentServerIp)
             setSingleLine()
-            setPadding(48, 36, 48, 36)
+        }
+        val studentInput = EditText(this).apply {
+            hint = "Tu código de alumno, ej. EST_08"
+            setText(studentId)
+            setSingleLine()
+        }
+        val roomInput = EditText(this).apply {
+            hint = "Aula asignada, ej. S302"
+            setText(targetRoomId)
+            setSingleLine()
+        }
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 36, 48, 12)
+            addView(ipInput)
+            addView(studentInput)
+            addView(roomInput)
         }
 
         AlertDialog.Builder(this)
-            .setTitle("IP del Servidor (Laptop)")
-            .setMessage("Ingresa la dirección IP local de tu laptop en la red actual:")
-            .setView(input)
+            .setTitle("Configuración del Sensor")
+            .setMessage("Dirección del servidor en la red local e identidad del alumno:")
+            .setView(container)
             .setPositiveButton("Guardar y Conectar") { _, _ ->
-                val entered = input.text.toString().trim()
-                if (entered.isNotEmpty()) {
+                val enteredIp = ipInput.text.toString().trim()
+                if (enteredIp.isNotEmpty()) {
                     // Limpiar posibles prefijos http:// o puertos accidentales
-                    currentServerIp = entered.replace("http://", "").replace("https://", "").split(":")[0]
-                    prefs.edit().putString("server_ip", currentServerIp).apply()
-                    updateServerConnection()
-                    Toast.makeText(this, "Conectando a $currentServerIp...", Toast.LENGTH_SHORT).show()
+                    currentServerIp = enteredIp.replace("http://", "").replace("https://", "").split(":")[0]
                 }
+
+                // El servidor rechaza identificadores fuera de [A-Za-z0-9_-]{1,32}, así que se
+                // descartan aquí los valores que harían fallar el handshake sin explicación.
+                val enteredStudent = studentInput.text.toString().trim()
+                if (enteredStudent.matches(IDENTIFIER_REGEX)) {
+                    studentId = enteredStudent
+                }
+                val enteredRoom = roomInput.text.toString().trim()
+                if (enteredRoom.matches(IDENTIFIER_REGEX)) {
+                    targetRoomId = enteredRoom
+                }
+
+                prefs.edit()
+                    .putString("server_ip", currentServerIp)
+                    .putString("student_id", studentId)
+                    .putString("target_room_id", targetRoomId)
+                    .apply()
+
+                updateServerConnection()
+                Toast.makeText(
+                    this,
+                    "Conectando a $currentServerIp como $studentId (aula $targetRoomId)...",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
             .setNegativeButton(if (isFirstRun) "Configurar luego" else "Cancelar") { dialog, _ ->
                 dialog.dismiss()
@@ -300,5 +351,41 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         wifiScanner.stopScanning()
         wsClient?.disconnect()
+    }
+
+    /**
+     * Localiza la potencia del punto de acceso del aula destino dentro de un escaneo.
+     *
+     * Los AP de aula siguen el convenio de nombre `AP_AULA_<numero>` en el SSID, y en el
+     * radio-mapa sintético el BSSID `ap_p<piso>_room<indice>`. Se acepta cualquiera de los dos
+     * para que funcione tanto con la infraestructura real como con el simulador.
+     *
+     * Devuelve null si el AP del aula no aparece en el escaneo, que es lo correcto: el servidor
+     * marcará entonces el RSSI como estimado en lugar de presentarlo como medido.
+     */
+    private fun strongestRssiForRoom(readings: List<WifiReading>, roomId: String): Double? {
+        // "S302" -> piso 3, aula 02
+        val digits = roomId.filter { it.isDigit() }
+        if (digits.length < 3) return null
+        val floor = digits.first()
+        val roomIndex = digits.substring(1)
+
+        val bssidConvention = "ap_p${floor}_room${roomIndex}"
+        val ssidConvention = "AP_AULA_${floor}${roomIndex}"
+
+        return readings
+            .filter { it.bssid.equals(bssidConvention, ignoreCase = true) ||
+                      it.ssid.equals(ssidConvention, ignoreCase = true) }
+            .maxByOrNull { it.rssi }
+            ?.rssi
+            ?.toDouble()
+    }
+
+    companion object {
+        private const val DEFAULT_STUDENT_ID = "EST_08"
+        private const val DEFAULT_ROOM_ID = "S302"
+
+        /** Mismo alfabeto que valida el backend antes de aceptar el handshake del WebSocket. */
+        private val IDENTIFIER_REGEX = Regex("^[A-Za-z0-9_-]{1,32}$")
     }
 }

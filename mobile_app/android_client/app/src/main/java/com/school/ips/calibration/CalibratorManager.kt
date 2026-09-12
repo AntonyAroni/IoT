@@ -43,24 +43,49 @@ class CalibratorManager(
         roomId: String? = null
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // Calcular estadísticas (Media y Desviación Estándar por BSSID)
+            // Calcular estadísticas (Media y Desviación Estándar por BSSID).
+            //
+            // Sesgo de supervivencia: promediar solo las ráfagas en las que el AP fue detectado
+            // le atribuye la media de sus lecturas más fuertes, no su potencia real. Un AP visto
+            // en 2 de 15 ráfagas obtenía así una media optimista. El sesgo golpea justo a los AP
+            // débiles, que son los que discriminan el piso en la clasificación jerárquica.
+            //
+            // Cada ráfaga en la que el AP no apareció aporta ABSENT_RSSI_DBM, coherente con el
+            // `default_absent_rssi` que aplica el motor WKNN del servidor al comparar vectores.
+            val totalSamples = collectedSamples.size
             val bssidMap = mutableMapOf<String, MutableList<Double>>()
+            val detectionCount = mutableMapOf<String, Int>()
+
             for (sample in collectedSamples) {
                 for (reading in sample) {
                     bssidMap.getOrPut(reading.bssid) { mutableListOf() }.add(reading.rssi.toDouble())
+                    detectionCount[reading.bssid] = (detectionCount[reading.bssid] ?: 0) + 1
                 }
             }
 
             val rssiMeans = JSONObject()
             val rssiStd = JSONObject()
+            val detectionRates = JSONObject()
 
-            for ((bssid, values) in bssidMap) {
+            for ((bssid, observed) in bssidMap) {
+                val timesDetected = detectionCount[bssid] ?: 0
+                val detectionRate = timesDetected.toDouble() / totalSamples
+
+                // Un AP presente en muy pocas ráfagas es ruido, no una referencia estable:
+                // incluirlo introduce más varianza de la que aporta en capacidad discriminante.
+                if (detectionRate < MIN_DETECTION_RATE) continue
+
+                // Imputar el valor suelo por cada ráfaga en la que no se detectó.
+                val values = observed.toMutableList()
+                repeat(totalSamples - timesDetected) { values.add(ABSENT_RSSI_DBM) }
+
                 val mean = values.average()
                 val variance = values.map { (it - mean).pow(2) }.average()
                 val std = sqrt(variance)
 
                 rssiMeans.put(bssid, Math.round(mean * 10.0) / 10.0)
                 rssiStd.put(bssid, Math.round(std * 10.0) / 10.0)
+                detectionRates.put(bssid, Math.round(detectionRate * 100.0) / 100.0)
             }
 
             // Construir payload JSON
@@ -102,5 +127,17 @@ class CalibratorManager(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    companion object {
+        /**
+         * Valor imputado para las ráfagas en las que un AP no fue detectado.
+         * Coincide con `WKNNConfig.default_absent_rssi` del servidor, de modo que el vector
+         * calibrado y el vector en línea usan la misma convención para la ausencia.
+         */
+        private const val ABSENT_RSSI_DBM = -105.0
+
+        /** Fracción mínima de ráfagas en las que un AP debe aparecer para entrar al radio-mapa. */
+        private const val MIN_DETECTION_RATE = 0.30
     }
 }

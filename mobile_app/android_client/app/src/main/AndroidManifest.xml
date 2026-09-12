@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.school.ips">
+<!--
+    El identificador del paquete se declara con `namespace` en app/build.gradle.
+    El atributo `package` de este manifiesto quedó obsoleto en AGP 7.3 y AGP 8 retiró su
+    soporte, de modo que mantenerlo hacía fallar la compilación.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Permisos Críticos para Escaneo de Señales Wi-Fi y Localización en Android -->
     <uses-permission android:name="android.permission.INTERNET" />
