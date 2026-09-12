@@ -66,7 +66,7 @@ class StationDashboardApp {
   _updateRoomView() {
     this.roomTitle.textContent = `Aula ${this.currentRoom}`;
     this.records.clear();
-    this.tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9ca3af;">Cargando padrón del aula...</td></tr>';
+    this._renderEmptyTable('Cargando padrón del aula...');
 
     if (this.wsClient) {
       this.wsClient.changeRoom(this.currentRoom);
@@ -177,13 +177,50 @@ class StationDashboardApp {
     this.metricRate.textContent = `${pct}%`;
   }
 
+  /**
+   * Construye una celda de tabla insertando el texto como nodo de texto.
+   *
+   * Nunca usar innerHTML aquí: student_id y student_name proceden del servidor y su origen
+   * último es la ruta del WebSocket del móvil, que es texto libre. Interpolarlos como HTML
+   * permitía ejecutar código en la laptop del docente.
+   */
+  _buildCell(text, { bold = false, className = null, style = null } = {}) {
+    const td = document.createElement('td');
+    const target = bold ? document.createElement('strong') : td;
+
+    if (className) {
+      const span = document.createElement('span');
+      span.className = className;
+      span.textContent = text;
+      td.appendChild(span);
+      return td;
+    }
+
+    target.textContent = text;
+    if (bold) td.appendChild(target);
+    if (style) td.setAttribute('style', style);
+    return td;
+  }
+
+  _renderEmptyTable(message) {
+    this.tableBody.replaceChildren();
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.setAttribute('style', 'text-align: center; color: #9ca3af;');
+    td.textContent = message;
+    tr.appendChild(td);
+    this.tableBody.appendChild(tr);
+  }
+
   _renderTable() {
     if (this.records.size === 0) {
-      this.tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #9ca3af;">No hay alumnos registrados.</td></tr>';
+      this._renderEmptyTable('No hay alumnos registrados.');
       return;
     }
 
-    const rows = [];
+    const fragment = document.createDocumentFragment();
+
     this.records.forEach(r => {
       let badgeClass = 'tag-absent';
       let badgeLabel = 'Ausente';
@@ -199,24 +236,29 @@ class StationDashboardApp {
         badgeLabel = 'Presente ✓';
       }
 
-      const timeStr = r.confirmed_at 
-        ? new Date(r.confirmed_at * 1000).toLocaleTimeString() 
+      const timeStr = r.confirmed_at
+        ? new Date(r.confirmed_at * 1000).toLocaleTimeString()
         : (r.last_seen ? new Date(r.last_seen * 1000).toLocaleTimeString() : '--');
 
-      const rssiStr = r.last_rssi ? `${r.last_rssi} dBm` : '--';
+      // El sufijo "est." distingue una potencia medida de una derivada de la posición
+      // estimada, para no presentar un valor calculado como si fuera una medición de radio.
+      let rssiStr = '--';
+      if (r.last_rssi !== null && r.last_rssi !== undefined) {
+        rssiStr = r.rssi_is_measured === false
+          ? `${r.last_rssi} dBm est.`
+          : `${r.last_rssi} dBm`;
+      }
 
-      rows.push(`
-        <tr>
-          <td><strong>${r.student_id}</strong></td>
-          <td>${r.student_name}</td>
-          <td><span class="status-tag ${badgeClass}">${badgeLabel}</span></td>
-          <td style="font-family: monospace; color: #38bdf8;">${rssiStr}</td>
-          <td style="color: #9ca3af;">${timeStr}</td>
-        </tr>
-      `);
+      const tr = document.createElement('tr');
+      tr.appendChild(this._buildCell(r.student_id, { bold: true }));
+      tr.appendChild(this._buildCell(r.student_name));
+      tr.appendChild(this._buildCell(badgeLabel, { className: `status-tag ${badgeClass}` }));
+      tr.appendChild(this._buildCell(rssiStr, { style: 'font-family: monospace; color: #38bdf8;' }));
+      tr.appendChild(this._buildCell(timeStr, { style: 'color: #9ca3af;' }));
+      fragment.appendChild(tr);
     });
 
-    this.tableBody.innerHTML = rows.join('');
+    this.tableBody.replaceChildren(fragment);
   }
 
   logAudit(msg) {

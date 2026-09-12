@@ -4,6 +4,7 @@ Orquesta el flujo bidireccional entre Sensores Móviles (Fase 3), Estaciones de 
 y el Cerebro de Localización (Fase 1).
 """
 import json
+import re
 import time
 import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -12,6 +13,18 @@ from ..domain.building import Point2D
 
 logger = logging.getLogger("ips.websockets")
 router = APIRouter(tags=["WebSockets"])
+
+# Los identificadores llegan como texto libre en la ruta del WebSocket y acaban propagándose al
+# tablero del aula. Se restringen a un alfabeto seguro para que no puedan transportar marcado.
+# Esto es defensa en profundidad: el frontend además escapa todo valor recibido.
+IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
+
+# Código de cierre de aplicación para un identificador con formato inválido.
+WS_CLOSE_INVALID_IDENTIFIER = 4400
+
+
+def _is_valid_identifier(value: str) -> bool:
+    return bool(IDENTIFIER_PATTERN.match(value))
 
 @router.websocket("/ws/laptop/{room_id}")
 async def ws_laptop_station(websocket: WebSocket, room_id: str):
@@ -22,6 +35,11 @@ async def ws_laptop_station(websocket: WebSocket, room_id: str):
     from ..main import app_state
     manager = app_state.connection_manager
     attendance_repo = app_state.attendance_repo
+
+    if not _is_valid_identifier(room_id):
+        logger.warning(f"Rechazada conexión de laptop con room_id inválido: {room_id!r}")
+        await websocket.close(code=WS_CLOSE_INVALID_IDENTIFIER, reason="room_id inválido")
+        return
 
     await manager.connect_laptop(websocket, room_id)
     try:
@@ -62,6 +80,11 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
     nav_engine = app_state.navigation_engine
     tracker = app_state.attendance_tracker
     graph = app_state.graph
+
+    if not _is_valid_identifier(student_id):
+        logger.warning(f"Rechazada conexión de móvil con student_id inválido: {student_id!r}")
+        await websocket.close(code=WS_CLOSE_INVALID_IDENTIFIER, reason="student_id inválido")
+        return
 
     await manager.connect_mobile(websocket, student_id)
     try:
@@ -132,6 +155,7 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
                 "position": {"x": est_pos.x, "y": est_pos.y},
                 "distance_to_classroom": round(est_pos.distance_to(target_center), 2) if detected_floor == target_floor else 99.0,
                 "rssi": record.last_rssi,
+                "rssi_is_measured": record.rssi_is_measured,
                 "samples_in_window": record.samples_in_window,
                 "confirmed_at": record.confirmed_at,
                 "audit_message": audit_msg

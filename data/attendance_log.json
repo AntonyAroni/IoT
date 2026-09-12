@@ -7,7 +7,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_02",
@@ -17,7 +18,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_03",
@@ -27,7 +29,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_04",
@@ -37,7 +40,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_05",
@@ -47,7 +51,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_06",
@@ -57,7 +62,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_07",
@@ -67,17 +73,19 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_08",
     "student_name": "Diego Ramos (Demo Player)",
     "room_id": "S302",
-    "status": "AT_DOOR",
-    "last_seen": 1789138003.3684552,
+    "status": "ABSENT",
+    "last_seen": 0.0,
     "confirmed_at": null,
-    "last_rssi": -48.0,
-    "samples_in_window": 1
+    "last_rssi": null,
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_09",
@@ -87,7 +95,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_10",
@@ -97,7 +106,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_11",
@@ -107,7 +117,8 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   },
   {
     "student_id": "EST_12",
@@ -117,6 +128,7 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-    "samples_in_window": 0
+    "samples_in_window": 0,
+    "rssi_is_measured": false
   }
 ]

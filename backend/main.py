@@ -56,12 +56,30 @@ app_state = ApplicationState()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    calibrated_points = len(app_state.radio_map_repo.get_all_entries())
+
     logger.info("=======================================================")
     logger.info(" INICIANDO CEREBRO IPS (4 PISOS, 12 SALONES, WEBSOCKETS)")
     logger.info(f" Nodos en Grafo: {len(app_state.graph.nodes)}")
     logger.info(f" Salones Registrados: {sum(len(f.rooms) for f in app_state.floors.values())}")
+    logger.info(f" Puntos de Referencia Calibrados: {calibrated_points}")
+    logger.info(f" Radio-Mapa: {config.server.radio_map_file}")
     logger.info("=======================================================")
+
+    # Un IPS sin radio-mapa no falla: devuelve piso 1 y una posición por defecto para todos,
+    # aparentando funcionar. Hay que avisar ruidosamente en lugar de degradar en silencio.
+    if calibrated_points == 0:
+        logger.warning("=======================================================")
+        logger.warning(" ⚠️  RADIO-MAPA VACÍO: el posicionamiento NO es fiable.")
+        logger.warning(f"    Ruta esperada: {config.server.radio_map_file}")
+        logger.warning("    Genéralo con:  PYTHONPATH=. python calibration_tools/generate_synthetic_map.py")
+        logger.warning("    O apunta a otro fichero con la variable IPS_RADIO_MAP_PATH.")
+        logger.warning("=======================================================")
+
     yield
+
+    # Volcar a disco lo que quede pendiente por el debounce de escritura.
+    app_state.attendance_repo.flush()
     logger.info("Apagando servidor IPS...")
 
 app = FastAPI(

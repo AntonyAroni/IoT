@@ -3,18 +3,48 @@ Servicio de Detección de Proximidad y Asistencia Inteligente por Ventana de Per
 Implementa el criterio científico de Horus / Smart Campus:
 Exige persistencia temporal (N escaneos continuos sobre el umbral en ventana de tiempo)
 para evitar falsos positivos producidos por alumnos que solo caminan frente a la puerta.
+
+Criterio de decisión
+--------------------
+Se dispone de dos señales para decidir si un alumno está dentro del aula:
+
+1. **Potencia medida** del AP del aula (`strongest_rssi_to_room_ap`), cuando el cliente la envía.
+2. **Posición estimada** por el motor WKNN, de la que se deriva la distancia al centro del aula.
+
+Cuando ambas están disponibles se exigen **las dos** (conjunción): es el criterio conservador
+que persigue el proyecto, minimizar falsos positivos. Un `or` haría que la posición estimada
+confirmara por sí sola la asistencia ignorando la potencia, que era el comportamiento anterior y
+volvía irrelevante el umbral RSSI.
+
+Cuando el cliente **no** envía la potencia medida, el RSSI se deriva de la distancia y por tanto
+no es una señal independiente: exigir ambas sería redundante. En ese caso se decide solo por
+geometría y se marca el registro como estimado (`rssi_is_measured = False`) para que la interfaz
+no presente un valor calculado como si fuera medido.
 """
 import time
-from typing import Optional, Dict, Tuple
-from ..domain.attendance import AttendanceRecord, AttendanceStatus, Student
+from typing import Optional, Tuple
+
+from ..config import AttendanceConfig
+from ..domain.attendance import AttendanceRecord, AttendanceStatus
 from ..domain.building import Point2D
 from ..repositories.base import IAttendanceRepository
-from ..config import AttendanceConfig
+
+# Distancia asignada cuando el alumno está en otro piso: fuerza la salida de todas las zonas.
+OFF_FLOOR_DISTANCE_METERS = 999.0
+OFF_FLOOR_RSSI_DBM = -95.0
+
 
 class AttendanceTrackerService:
     def __init__(self, attendance_repo: IAttendanceRepository, config: Optional[AttendanceConfig] = None):
         self.attendance_repo = attendance_repo
         self.config = config or AttendanceConfig()
+
+    def _estimate_rssi_from_distance(self, distance_meters: float) -> float:
+        """
+        Proxy log-distance usado solo cuando el cliente no envía la potencia medida.
+        Aproximación típica en interiores: -40 dBm a 1 m, ~-55 dBm a 3 m, ~-70 dBm a 8 m.
+        """
+        return -40.0 - 25.0 * (max(0.5, distance_meters) / 3.0)
 
     def process_student_presence(
         self,
@@ -28,7 +58,7 @@ class AttendanceTrackerService:
     ) -> Tuple[AttendanceRecord, bool, Optional[str]]:
         """
         Evalúa la proximidad del estudiante respecto a su salón de clase asignado.
-        
+
         Retorna:
             (record: AttendanceRecord, status_changed: bool, message: Optional[str])
         """
@@ -45,20 +75,25 @@ class AttendanceTrackerService:
                 last_seen=now
             )
 
-        previous_status = record.status
-        distance_to_center = position.distance_to(target_room_center) if detected_floor == target_room_floor else 999.0
+        # Instante de la lectura anterior: necesario para medir el hueco temporal ANTES de
+        # sobrescribir last_seen con la lectura actual.
+        previous_last_seen = record.last_seen
 
-        # Si no se pasó RSSI directo del AP del salón, estimar proxy inversamente proporcional a la distancia
-        if strongest_rssi_to_room_ap is None:
-            # Aproximación Log-Distance típica en interiores: -40 dBm a 1m, ~ -55 dBm a 3m, ~ -70 dBm a 8m
-            if detected_floor != target_room_floor:
-                effective_rssi = -95.0
-            else:
-                effective_rssi = -40.0 - 25.0 * (max(0.5, distance_to_center) / 3.0)
-        else:
+        on_target_floor = detected_floor == target_room_floor
+        distance_to_center = (
+            position.distance_to(target_room_center) if on_target_floor else OFF_FLOOR_DISTANCE_METERS
+        )
+
+        rssi_is_measured = strongest_rssi_to_room_ap is not None
+        if rssi_is_measured:
             effective_rssi = strongest_rssi_to_room_ap
+        elif not on_target_floor:
+            effective_rssi = OFF_FLOOR_RSSI_DBM
+        else:
+            effective_rssi = self._estimate_rssi_from_distance(distance_to_center)
 
         record.last_rssi = round(effective_rssi, 1)
+        record.rssi_is_measured = rssi_is_measured
         record.last_seen = now
 
         # Si ya fue confirmado previamente, mantener confirmado
@@ -66,15 +101,44 @@ class AttendanceTrackerService:
             self.attendance_repo.save_record(record)
             return record, False, None
 
-        # Evaluar umbrales
-        is_in_classroom_zone = (
-            detected_floor == target_room_floor and
-            (effective_rssi >= self.config.classroom_threshold_dbm or distance_to_center <= 3.0)
+        # ------------------------------------------------------------------
+        # Caducidad de la ventana de permanencia
+        # ------------------------------------------------------------------
+        # La ventana exige N lecturas CONSECUTIVAS. Si entre dos lecturas transcurre más tiempo
+        # del permitido, la racha se rompe: de lo contrario el contador nunca expira y tres
+        # pasadas frente a la puerta en días distintos confirmarían la asistencia.
+        window_expired = (
+            record.samples_in_window > 0
+            and previous_last_seen > 0.0
+            and (now - previous_last_seen) > self.config.window_timeout_seconds
         )
+        if window_expired:
+            record.samples_in_window = 0
 
-        is_in_approaching_zone = (
-            detected_floor == target_room_floor and
-            (effective_rssi >= self.config.approaching_threshold_dbm or distance_to_center <= 9.0)
+        # ------------------------------------------------------------------
+        # Evaluación de zonas
+        # ------------------------------------------------------------------
+        within_classroom_radius = distance_to_center <= self.config.classroom_radius_meters
+        within_approaching_radius = distance_to_center <= self.config.approaching_radius_meters
+        above_classroom_threshold = effective_rssi >= self.config.classroom_threshold_dbm
+        above_approaching_threshold = effective_rssi >= self.config.approaching_threshold_dbm
+
+        # La zona de aula GOBIERNA la confirmación de asistencia: criterio conservador.
+        # Con potencia medida, ésta y la geometría son señales independientes y se exigen ambas.
+        # Sin potencia medida el RSSI se derivó de la distancia, así que exigir ambas sería
+        # exigir dos veces la misma condición.
+        if rssi_is_measured:
+            is_in_classroom_zone = on_target_floor and above_classroom_threshold and within_classroom_radius
+        else:
+            is_in_classroom_zone = on_target_floor and within_classroom_radius
+
+        # La zona de aproximación es puramente INFORMATIVA: alimenta el radar del aula y no
+        # concede asistencia. Un falso "aproximándose" no tiene coste, mientras que exigir la
+        # conjunción dejaría el radar vacío (a 9 m el AP del aula ya no es legible: el modelo
+        # log-distance predice -115 dBm, por debajo de la sensibilidad del receptor).
+        # Por eso aquí se mantiene la disyunción.
+        is_in_approaching_zone = on_target_floor and (
+            above_approaching_threshold or within_approaching_radius
         )
 
         status_changed = False
@@ -87,26 +151,43 @@ class AttendanceTrackerService:
                 record.status = AttendanceStatus.PRESENT_CONFIRMED
                 record.confirmed_at = now
                 status_changed = True
-                audit_msg = f"✅ ASISTENCIA CONFIRMADA: {record.student_name} validó permanencia ({record.samples_in_window} muestras, RSSI={record.last_rssi} dBm)."
+                audit_msg = (
+                    f"✅ ASISTENCIA CONFIRMADA: {record.student_name} validó permanencia "
+                    f"({record.samples_in_window} muestras, RSSI={record.last_rssi} dBm"
+                    f"{'' if rssi_is_measured else ', estimado'})."
+                )
             else:
-                if record.status != AttendanceStatus.AT_DOOR:
+                if record.status != AttendanceStatus.AT_DOOR or window_expired:
                     record.status = AttendanceStatus.AT_DOOR
                     status_changed = True
-                    audit_msg = f"🚪 EN PUERTA: {record.student_name} en umbral ({record.samples_in_window}/{self.config.confirmation_window_scans} muestras)."
+                    expiry_note = " — ventana reiniciada por inactividad" if window_expired else ""
+                    audit_msg = (
+                        f"🚪 EN PUERTA: {record.student_name} en umbral "
+                        f"({record.samples_in_window}/{self.config.confirmation_window_scans} muestras)"
+                        f"{expiry_note}."
+                    )
+                else:
+                    record.status = AttendanceStatus.AT_DOOR
         elif is_in_approaching_zone:
             # Resetea ventana si retrocede a zona de aproximación
             record.samples_in_window = max(0, record.samples_in_window - 1)
             if record.status != AttendanceStatus.APPROACHING:
                 record.status = AttendanceStatus.APPROACHING
                 status_changed = True
-                audit_msg = f"📡 APROXIMÁNDOSE: {record.student_name} detectado en pasillo hacia {target_room_id} (RSSI={record.last_rssi} dBm)."
+                audit_msg = (
+                    f"📡 APROXIMÁNDOSE: {record.student_name} detectado en pasillo hacia "
+                    f"{target_room_id} (RSSI={record.last_rssi} dBm)."
+                )
         else:
             # Fuera de rango
             record.samples_in_window = 0
             if record.status != AttendanceStatus.ABSENT:
                 record.status = AttendanceStatus.ABSENT
                 status_changed = True
-                audit_msg = f"⚪ FUERA DE RANGO: {record.student_name} fuera de cobertura del salón {target_room_id}."
+                audit_msg = (
+                    f"⚪ FUERA DE RANGO: {record.student_name} fuera de cobertura del salón "
+                    f"{target_room_id}."
+                )
 
         self.attendance_repo.save_record(record)
         return record, status_changed, audit_msg

@@ -51,3 +51,11 @@ class IAttendanceRepository(Protocol):
     def register_student(self, student: Student) -> None:
         """Registra un alumno en el padrón escolar."""
         ...
+
+    def load_from_file(self, filepath: str) -> None:
+        """Carga los registros de asistencia persistidos en disco."""
+        ...
+
+    def flush(self) -> None:
+        """Vuelca a disco de forma inmediata los cambios pendientes en memoria."""
+        ...

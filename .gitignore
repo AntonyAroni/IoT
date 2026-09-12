@@ -64,3 +64,7 @@ captures/
 Thumbs.db
 .vscode/
 *.log
+
+# Estado de ejecución: el padrón sembrado se versiona en su estado prístino (todos ABSENT),
+# pero la asistencia real de una sesión no debe commitearse. Si tras ejecutar el demo o el
+# servidor aparece modificado, restaurar con: git checkout -- data/attendance_log.json
