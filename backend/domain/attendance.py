@@ -27,10 +27,38 @@ class AttendanceRecord:
     last_seen: float
     confirmed_at: Optional[float] = None
     last_rssi: Optional[float] = None
-    samples_in_window: int = 0
     # False cuando `last_rssi` no es una medición sino un valor derivado de la posición
     # estimada. La interfaz no debe presentar un valor calculado como si fuera medido.
     rssi_is_measured: bool = False
+
+    # Marcas de tiempo de las lecturas que cumplen el criterio de aula y forman la racha actual.
+    # Antes solo se guardaba un contador, que permite exigir "N lecturas seguidas" pero no
+    # "N lecturas a lo largo de al menos T segundos": con un contador no se sabe cuánto tiempo
+    # lleva el alumno en el aula, solo cuántas veces se le ha visto.
+    window_sample_times: List[float] = field(default_factory=list)
+
+    @property
+    def samples_in_window(self) -> int:
+        """Número de lecturas de la racha actual."""
+        return len(self.window_sample_times)
+
+    @property
+    def dwell_seconds(self) -> float:
+        """Tiempo transcurrido entre la primera y la última lectura de la racha actual."""
+        if len(self.window_sample_times) < 2:
+            return 0.0
+        return self.window_sample_times[-1] - self.window_sample_times[0]
+
+    def add_window_sample(self, timestamp: float) -> None:
+        self.window_sample_times.append(timestamp)
+
+    def drop_oldest_window_sample(self) -> None:
+        """Descuenta una lectura de la racha; usado cuando el alumno retrocede al pasillo."""
+        if self.window_sample_times:
+            self.window_sample_times.pop(0)
+
+    def reset_window(self) -> None:
+        self.window_sample_times.clear()
 
     def to_dict(self) -> dict:
         return {
@@ -42,12 +70,27 @@ class AttendanceRecord:
             "confirmed_at": self.confirmed_at,
             "last_rssi": self.last_rssi,
             "samples_in_window": self.samples_in_window,
-            "rssi_is_measured": self.rssi_is_measured
+            "dwell_seconds": round(self.dwell_seconds, 1),
+            "rssi_is_measured": self.rssi_is_measured,
+            "window_sample_times": self.window_sample_times
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "AttendanceRecord":
-        """Reconstruye un registro persistido en disco."""
+        """
+        Reconstruye un registro persistido en disco.
+
+        Compatibilidad con ficheros anteriores: si solo traen el contador `samples_in_window` y
+        no las marcas de tiempo, se reconstruye una racha de esa longitud situada toda en
+        `last_seen`. El recuento se conserva y la permanencia calculada queda en 0 s, que es lo
+        honesto cuando no se guardó cuándo ocurrieron esas lecturas.
+        """
+        sample_times = data.get("window_sample_times")
+        if sample_times is None:
+            legacy_count = data.get("samples_in_window", 0)
+            last_seen = data.get("last_seen", 0.0)
+            sample_times = [last_seen] * legacy_count
+
         return cls(
             student_id=data["student_id"],
             student_name=data["student_name"],
@@ -56,6 +99,6 @@ class AttendanceRecord:
             last_seen=data.get("last_seen", 0.0),
             confirmed_at=data.get("confirmed_at"),
             last_rssi=data.get("last_rssi"),
-            samples_in_window=data.get("samples_in_window", 0),
-            rssi_is_measured=data.get("rssi_is_measured", False)
+            rssi_is_measured=data.get("rssi_is_measured", False),
+            window_sample_times=list(sample_times)
         )

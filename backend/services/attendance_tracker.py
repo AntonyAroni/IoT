@@ -113,7 +113,7 @@ class AttendanceTrackerService:
             and (now - previous_last_seen) > self.config.window_timeout_seconds
         )
         if window_expired:
-            record.samples_in_window = 0
+            record.reset_window()
 
         # ------------------------------------------------------------------
         # Evaluación de zonas
@@ -145,32 +145,59 @@ class AttendanceTrackerService:
         audit_msg = None
 
         if is_in_classroom_zone:
-            # Incrementar contador de muestras continuas en ventana
-            record.samples_in_window += 1
-            if record.samples_in_window >= self.config.confirmation_window_scans:
+            record.add_window_sample(now)
+
+            # La confirmación exige recuento **y**, si se ha configurado, permanencia: cuántas
+            # veces se ha visto al alumno y cuánto tiempo lleva dentro son cosas distintas.
+            has_enough_samples = record.samples_in_window >= self.config.confirmation_window_scans
+            has_enough_dwell = record.dwell_seconds >= self.config.minimum_dwell_seconds
+
+            if has_enough_samples and has_enough_dwell:
                 record.status = AttendanceStatus.PRESENT_CONFIRMED
                 record.confirmed_at = now
                 status_changed = True
+                dwell_note = (
+                    f", {record.dwell_seconds:.0f} s de permanencia"
+                    if self.config.minimum_dwell_seconds > 0 else ""
+                )
                 audit_msg = (
                     f"✅ ASISTENCIA CONFIRMADA: {record.student_name} validó permanencia "
-                    f"({record.samples_in_window} muestras, RSSI={record.last_rssi} dBm"
+                    f"({record.samples_in_window} muestras{dwell_note}, RSSI={record.last_rssi} dBm"
                     f"{'' if rssi_is_measured else ', estimado'})."
                 )
             else:
-                if record.status != AttendanceStatus.AT_DOOR or window_expired:
-                    record.status = AttendanceStatus.AT_DOOR
-                    status_changed = True
+                entering_door = record.status != AttendanceStatus.AT_DOOR or window_expired
+
+                # El alumno ya ha aportado las N muestras pero le falta permanencia. Sin este
+                # aviso el tablero mostraría "3/3 muestras" sin confirmar y sin explicar por qué,
+                # y el mensaje solo se emite al entrar al estado, así que nunca se vería.
+                # Se reporta una sola vez por racha, al alcanzar el recuento exigido.
+                dwell_pending_reached = (
+                    has_enough_samples
+                    and not has_enough_dwell
+                    and record.samples_in_window == self.config.confirmation_window_scans
+                )
+
+                record.status = AttendanceStatus.AT_DOOR
+
+                if entering_door or dwell_pending_reached:
+                    status_changed = entering_door
                     expiry_note = " — ventana reiniciada por inactividad" if window_expired else ""
-                    audit_msg = (
-                        f"🚪 EN PUERTA: {record.student_name} en umbral "
-                        f"({record.samples_in_window}/{self.config.confirmation_window_scans} muestras)"
-                        f"{expiry_note}."
-                    )
-                else:
-                    record.status = AttendanceStatus.AT_DOOR
+                    if has_enough_samples and not has_enough_dwell:
+                        pending = self.config.minimum_dwell_seconds - record.dwell_seconds
+                        detail = (
+                            f"{record.samples_in_window} muestras, faltan {pending:.0f} s "
+                            f"de permanencia"
+                        )
+                    else:
+                        detail = (
+                            f"{record.samples_in_window}/"
+                            f"{self.config.confirmation_window_scans} muestras"
+                        )
+                    audit_msg = f"🚪 EN PUERTA: {record.student_name} en umbral ({detail}){expiry_note}."
         elif is_in_approaching_zone:
-            # Resetea ventana si retrocede a zona de aproximación
-            record.samples_in_window = max(0, record.samples_in_window - 1)
+            # Retroceder al pasillo descuenta la lectura más antigua de la racha
+            record.drop_oldest_window_sample()
             if record.status != AttendanceStatus.APPROACHING:
                 record.status = AttendanceStatus.APPROACHING
                 status_changed = True
@@ -180,7 +207,7 @@ class AttendanceTrackerService:
                 )
         else:
             # Fuera de rango
-            record.samples_in_window = 0
+            record.reset_window()
             if record.status != AttendanceStatus.ABSENT:
                 record.status = AttendanceStatus.ABSENT
                 status_changed = True

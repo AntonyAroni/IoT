@@ -39,7 +39,7 @@ def reset_room_attendance(room_id: str, repo: IAttendanceRepository = Depends(ge
     for r in records:
         r.status = AttendanceStatus.ABSENT
         r.confirmed_at = None
-        r.samples_in_window = 0
+        r.reset_window()
         r.last_rssi = None
         repo.save_record(r)
     return {"status": "success", "message": f"Asistencia del aula {room_id} reiniciada."}

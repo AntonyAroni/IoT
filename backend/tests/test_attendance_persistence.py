@@ -35,7 +35,8 @@ class TestAttendancePersistence(unittest.TestCase):
         record.status = AttendanceStatus.PRESENT_CONFIRMED
         record.confirmed_at = 1772700000.0
         record.last_rssi = -48.0
-        record.samples_in_window = 3
+        for t in (1772699990.0, 1772699995.0, 1772700000.0):
+            record.add_window_sample(t)
         repo.save_record(record)
 
         # Simular reinicio: instancia nueva sobre el mismo fichero
@@ -46,6 +47,10 @@ class TestAttendancePersistence(unittest.TestCase):
         self.assertEqual(reloaded.confirmed_at, 1772700000.0)
         self.assertEqual(reloaded.last_rssi, -48.0)
         self.assertEqual(reloaded.samples_in_window, 3)
+        self.assertAlmostEqual(
+            reloaded.dwell_seconds, 10.0,
+            msg="Las marcas de tiempo de la racha deben sobrevivir al reinicio"
+        )
 
     def test_confirmation_is_written_immediately(self):
         """

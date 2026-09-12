@@ -88,6 +88,18 @@ class AttendanceConfig:
     confirmation_window_scans: int = 3        # Muestras continuas requeridas sobre el umbral
     window_timeout_seconds: float = 15.0      # Tiempo máximo entre lecturas consecutivas
 
+    # Permanencia mínima exigida, en segundos, medida entre la primera y la última lectura de la
+    # racha. Complementa al recuento de muestras: `confirmation_window_scans` controla CUÁNTAS
+    # veces se ha visto al alumno y este parámetro CUÁNTO TIEMPO lleva dentro.
+    #
+    # El valor 0.0 lo desactiva y deja el criterio en solo el recuento, que es el comportamiento
+    # histórico. Con un escaneo cada 1.5 s, N=3 cubre unos 4.5 segundos: basta para descartar a
+    # quien *pasa* por delante de la puerta, pero no a quien *se detiene* a conversar en el
+    # umbral. Para eso hay que exigir permanencia explícita (por ejemplo 300.0 para cinco
+    # minutos), y entonces conviene subir también `window_timeout_seconds`, porque una racha se
+    # rompe si dos lecturas consecutivas se separan más de ese intervalo.
+    minimum_dwell_seconds: float = 0.0
+
     # Radios geométricos de decisión, en metros, medidos desde el centro del aula.
     # Antes estaban incrustados como literales en AttendanceTrackerService.
     classroom_radius_meters: float = 4.0      # Cubre el 100% de la huella del aula

@@ -156,6 +156,103 @@ class TestPermanenceWindowExpiry(unittest.TestCase):
         self.assertIsNotNone(rec.confirmed_at)
 
 
+class TestMinimumDwell(unittest.TestCase):
+    """
+    Audita la permanencia mínima (`AttendanceConfig.minimum_dwell_seconds`).
+
+    El recuento de muestras responde a "cuántas veces se ha visto al alumno"; la permanencia, a
+    "cuánto tiempo lleva dentro". Con un escaneo cada 1.5 s, N=3 cubre unos 4.5 segundos: basta
+    para descartar a quien pasa por delante de la puerta, pero no a quien se detiene en el umbral.
+    """
+
+    def setUp(self):
+        self.repo = InMemoryAttendanceRepository()
+        self.student_id = "EST_TEST"
+        self.repo.register_student(Student(self.student_id, "Alumno Prueba", "S302"))
+        self.target_center = Point2D(x=10.0, y=2.0)
+        self.pos_inside = Point2D(x=10.0, y=2.5)
+
+    def _tracker(self, dwell_seconds, window_timeout=600.0):
+        config = AttendanceConfig(
+            confirmation_window_scans=3,
+            window_timeout_seconds=window_timeout,
+            minimum_dwell_seconds=dwell_seconds
+        )
+        return AttendanceTrackerService(self.repo, config)
+
+    def _scan(self, tracker):
+        return tracker.process_student_presence(
+            self.student_id, 3, self.pos_inside, "S302", 3, self.target_center,
+            strongest_rssi_to_room_ap=-50.0
+        )
+
+    def test_sample_count_alone_does_not_confirm_when_dwell_is_required(self):
+        """Tres lecturas en 3 segundos no confirman si se exigen 60 s de permanencia."""
+        tracker = self._tracker(dwell_seconds=60.0)
+        with mock.patch("backend.services.attendance_tracker.time.time") as fake_time:
+            for t in (1000.0, 1001.5, 1003.0):
+                fake_time.return_value = t
+                record, _, msg = self._scan(tracker)
+
+        self.assertEqual(record.samples_in_window, 3)
+        self.assertNotEqual(record.status, AttendanceStatus.PRESENT_CONFIRMED)
+        self.assertIn("permanencia", msg)
+
+    def test_confirms_once_the_dwell_is_reached(self):
+        """La misma racha confirma en cuanto el alumno acumula la permanencia exigida."""
+        tracker = self._tracker(dwell_seconds=60.0)
+        with mock.patch("backend.services.attendance_tracker.time.time") as fake_time:
+            for t in (1000.0, 1001.5, 1003.0):
+                fake_time.return_value = t
+                record, _, _ = self._scan(tracker)
+            self.assertNotEqual(record.status, AttendanceStatus.PRESENT_CONFIRMED)
+
+            fake_time.return_value = 1061.0  # 61 s desde la primera lectura
+            record, changed, _ = self._scan(tracker)
+
+        self.assertEqual(record.status, AttendanceStatus.PRESENT_CONFIRMED)
+        self.assertTrue(changed)
+        self.assertGreaterEqual(record.dwell_seconds, 60.0)
+
+    def test_dwell_disabled_by_default(self):
+        """Con minimum_dwell_seconds=0 el criterio es solo el recuento, como antes."""
+        tracker = self._tracker(dwell_seconds=0.0)
+        with mock.patch("backend.services.attendance_tracker.time.time") as fake_time:
+            for t in (1000.0, 1001.5, 1003.0):
+                fake_time.return_value = t
+                record, _, _ = self._scan(tracker)
+        self.assertEqual(record.status, AttendanceStatus.PRESENT_CONFIRMED)
+
+    def test_dwell_measures_the_span_of_the_streak(self):
+        """La permanencia es el intervalo entre la primera y la última lectura de la racha."""
+        tracker = self._tracker(dwell_seconds=0.0)
+        with mock.patch("backend.services.attendance_tracker.time.time") as fake_time:
+            fake_time.return_value = 2000.0
+            record, _, _ = self._scan(tracker)
+            self.assertEqual(record.dwell_seconds, 0.0, "Una sola lectura no acumula permanencia")
+
+            fake_time.return_value = 2012.0
+            record, _, _ = self._scan(tracker)
+
+        self.assertAlmostEqual(record.dwell_seconds, 12.0)
+
+    def test_expired_window_restarts_the_dwell(self):
+        """Si la racha se rompe por inactividad, la permanencia vuelve a contar desde cero."""
+        tracker = self._tracker(dwell_seconds=0.0, window_timeout=15.0)
+        with mock.patch("backend.services.attendance_tracker.time.time") as fake_time:
+            fake_time.return_value = 3000.0
+            self._scan(tracker)
+            fake_time.return_value = 3005.0
+            record, _, _ = self._scan(tracker)
+            self.assertAlmostEqual(record.dwell_seconds, 5.0)
+
+            fake_time.return_value = 3100.0  # hueco de 95 s: rompe la racha
+            record, _, _ = self._scan(tracker)
+
+        self.assertEqual(record.samples_in_window, 1)
+        self.assertEqual(record.dwell_seconds, 0.0)
+
+
 class TestClassroomCriterion(unittest.TestCase):
     """
     Audita que el umbral RSSI influya realmente en la decisión.
