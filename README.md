@@ -35,10 +35,10 @@ En entornos cerrados y edificios de múltiples niveles (como escuelas, universid
 Este proyecto resuelve la localización en interiores utilizando la infraestructura existente de **puntos de acceso Wi-Fi (AP)** mediante la técnica de **Radio Fingerprinting**. El sistema modela un edificio de **4 pisos y 12 salones** (3 aulas por piso: `S101`-`S103`, `S201`-`S203`, `S301`-`S303`, `S401`-`S403`), pasillos centrales y núcleo de escaleras.
 
 ### Capacidades Principales
-- 🏢 **Detección Jerárquica de Piso:** Identificación inmediata del nivel con precisión del 100% aprovechando la atenuación de losas de concreto (~14 dBm/piso).
-- 📍 **Posicionamiento 2D Continuo (WKNN):** Algoritmo *Weighted k-Nearest Neighbors* con error promedio de **1.83 metros** ($k=2$).
+- 🏢 **Detección Jerárquica de Piso:** Identificación del nivel aprovechando la atenuación de losas de concreto (~14 dBm/piso); **99.2%** de acierto en validación simulada.
+- 📍 **Posicionamiento 2D Continuo (WKNN):** Algoritmo *Weighted k-Nearest Neighbors* con error medio de **1.73 m** ($k=2$) en validación simulada — ver las limitaciones del modelo en `calibration_tools/validation_report.md`.
 - 🧭 **Navegación Paso a Paso (*Turn-by-Turn*):** Grafo dirigido con algoritmo de Dijkstra que emite instrucciones dinámicas en tiempo real (*"Sube a la escalera al piso 3"*, *"Gira a la derecha hacia el Salón 302 a 4 m"*, *"¡Has llegado!"*).
-- ⏱️ **Asistencia Inteligente sin Contacto:** Algoritmo con ventana temporal de permanencia ($N=3$ escaneos continuos sobre umbral $\ge -55\text{ dBm}$) que previene falsos positivos causados por alumnos que solo transitan por el pasillo frente a la puerta abierta.
+- ⏱️ **Asistencia Inteligente sin Contacto:** Algoritmo con ventana temporal de permanencia ($N=3$ escaneos continuos que superen $-70\text{ dBm}$ **y** estén a $\le 4\text{ m}$ del centro del aula) que previene falsos positivos causados por alumnos que solo transitan por el pasillo frente a la puerta abierta.
 - 💻 **Radar de Proximidad en Aulas:** Dashboard interactivo en tiempo real para las laptops docentes de cada aula con visualización de radar, notificaciones sonoras y registro automático persistente.
 
 ---
@@ -102,8 +102,12 @@ El edificio se representa como un grafo dirigido $G = (V, E)$, donde cada nodo r
 
 ### 4. Lógica de Asistencia y Prevención de Falsos Positivos
 - **Aproximación:** RSSI $\ge -70\text{ dBm}$ (el estudiante aparece en el radar del aula).
-- **En Puerta / Entrada:** RSSI $\ge -55\text{ dBm}$.
-- **Confirmación de Asistencia:** Se exige una ventana deslizante de **3 muestras consecutivas** ($N=3$) que superen los $-55\text{ dBm}$ con un intervalo máximo de 15 segundos. Esto elimina los falsos positivos cuando un estudiante solo camina por el pasillo frente a la puerta sin ingresar a la clase.
+- **Dentro del Aula:** RSSI $\ge -70\text{ dBm}$ **y** distancia estimada $\le 4\text{ m}$ del centro del aula.
+- **Confirmación de Asistencia:** Se exige una ventana de **3 muestras consecutivas** ($N=3$) que cumplan ambas condiciones, con un intervalo máximo de 15 segundos entre lecturas. Si se supera ese intervalo, la racha se rompe y el contador se reinicia.
+
+> **Sobre la elección de los umbrales.** Ambos criterios describen el mismo hecho físico, así que deben ser equivalentes bajo el modelo de propagación del propio proyecto ($RSSI = -40 - 25 \cdot d/3$): $-70\text{ dBm}$ corresponde a $3.60\text{ m}$, y el radio de $4\text{ m}$ cubre el 100% de la huella del aula, incluido el pupitre más alejado (a $3.81\text{ m}$ del centro). El valor anterior de $-55\text{ dBm}$ equivalía a solo $1.80\text{ m}$, menos de la mitad del aula. Ver §4.2 de `calibration_tools/validation_report.md`.
+>
+> La conjunción se aplica **solo** a la zona de aula, que es la que concede asistencia. La zona de aproximación que alimenta el radar usa disyunción, porque es informativa y a $9\text{ m}$ el AP del aula ya no es legible.
 
 ---
 
@@ -143,7 +147,7 @@ El edificio se representa como un grafo dirigido $G = (V, E)$, donde cada nodo r
 │       ├── test_websocket_integration.py
 │       └── test_wknn_positioning.py
 ├── calibration_tools/            # Herramientas de calibración, simulación y auditoría
-│   ├── field_audit_report.md     # Reporte científico formal con métricas LOOCV
+│   ├── validation_report.md      # Reporte de validación LOOCV (simulación) y limitaciones
 │   ├── generate_synthetic_map.py # Generador de radio-mapas bajo modelo log-distance
 │   ├── loocv_evaluator.py        # Evaluador Leave-One-Out Cross-Validation
 │   ├── synthetic_test_suite.py   # Suite de pruebas de estrés bajo diferentes escenarios
@@ -309,10 +313,21 @@ El APK resultante se genera en `app/build/outputs/apk/debug/app-debug.apk`.
 
 La carpeta `calibration_tools/` ofrece scripts científicos para validar la precisión del sistema:
 
-### 1. Auditoría LOOCV (Leave-One-Out Cross-Validation)
-Evalúa el comportamiento métrico y la precisión de piso ante diferentes valores del hiperparámetro $k$:
+### 1. Validación LOOCV (Leave-One-Out Cross-Validation)
+Evalúa el error métrico y la precisión de piso ante diferentes valores del hiperparámetro $k$:
 ```bash
 PYTHONPATH=. python calibration_tools/loocv_evaluator.py
+```
+
+El experimento es **reproducible**: el ruido se extrae de un generador con semilla fija y el
+resultado se promedia sobre varias repeticiones. Opciones disponibles:
+
+```bash
+--seed 42        # Semilla del generador de ruido (por defecto 42)
+--repeats 30     # Repeticiones del experimento; se reporta media ± desviación estándar
+--sigma 1.2      # Desviación del ruido gaussiano añadido, en dBm
+--k 1 2 3 4 5    # Valores del hiperparámetro a evaluar
+--map <ruta>     # Radio-mapa alternativo a auditar
 ```
 
 ### 2. Sintonizador de Umbrales de Asistencia
@@ -320,6 +335,10 @@ Analiza las tasas de falsos positivos (FAR) y falsos negativos (FRR) variando el
 ```bash
 PYTHONPATH=. python calibration_tools/threshold_tuner.py
 ```
+
+Evalúa 40 asistentes reales y 40 peatones generados con un modelo sembrado, y barre además el
+radio geométrico del aula. Opciones: `--seed`, `--population`, `--sigma-rssi`, `--sigma-pos`,
+`--scans-attendee`, `--scans-passer`. Ver §4 de `calibration_tools/validation_report.md`.
 
 ### 3. Generador de Mapas de Radio Sintéticos
 Permite regenerar el archivo `data/radio_map.json` modelando atenuación por distancia logarítmica y pérdidas por losas/muros:
@@ -348,19 +367,39 @@ OK
 
 ---
 
-## 📈 Métricas y Resultados Obtenidos
+## 📈 Métricas y Resultados de Validación
 
-Basado en la auditoría empírica realizada sobre 40 Puntos de Referencia físicos (reportada en detalle en `calibration_tools/field_audit_report.md`):
+> ⚠️ **Estas cifras provienen de una simulación, no de mediciones en un edificio real.** Los 40
+> puntos de referencia son sintéticos, generados con un modelo de propagación log-distance
+> (PLE = 2.8, atenuación de losa 14 dB, σ = 1.5 dB) y validados por LOOCV contra ese mismo
+> modelo. Constituyen una verificación funcional de los algoritmos, no una medida de su precisión
+> en campo. El detalle completo, con las limitaciones del modelo, está en
+> `calibration_tools/validation_report.md`.
+
+Validación LOOCV sobre 40 RPs sintéticos, semilla 42, 30 repeticiones (media ± desviación estándar):
 
 | Métrica | Objetivo de Diseño | Resultado Obtenido | Estado |
 | :--- | :---: | :---: | :---: |
-| **Aislamiento de Piso** | $\ge 95.0\%$ | **100.0%** (40/40) | 🟢 APROBADO |
-| **Error Medio 2D ($k=2$)** | $\le 2.50\text{ m}$ | **1.83 m** | 🟢 APROBADO |
-| **Error Mediano 2D** | $\le 2.20\text{ m}$ | **2.08 m** | 🟢 APROBADO |
-| **Percentil 90 del Error** | $\le 4.00\text{ m}$ | **2.66 m** | 🟢 APROBADO |
-| **RMSE Métrico** | $\le 3.00\text{ m}$ | **2.19 m** | 🟢 APROBADO |
-| **Tasa de Falsos Positivos (FAR)** | $\le 5.0\%$ | **0.0%** ($N=3$) | 🟢 APROBADO |
-| **Tasa de Falsos Negativos (FRR)** | $\le 5.0\%$ | **0.0%** | 🟢 APROBADO |
+| **Aislamiento de Piso** | $\ge 95.0\%$ | **99.2 ± 1.2%** (mín. 97.5%) | 🟢 CUMPLE |
+| **Error Medio 2D ($k=2$)** | $\le 2.50\text{ m}$ | **1.73 ± 0.05 m** | 🟢 CUMPLE |
+| **Error Mediano 2D** | $\le 2.20\text{ m}$ | **1.98 ± 0.02 m** | 🟢 CUMPLE |
+| **Percentil 90 del Error** | $\le 4.00\text{ m}$ | **2.71 ± 0.02 m** | 🟢 CUMPLE |
+| **RMSE Métrico** | $\le 3.00\text{ m}$ | **2.16 ± 0.10 m** | 🟢 CUMPLE |
+| **Tasa de Falsos Positivos (FAR)** | $\le 5.0\%$ | **0.0%** (0/40 peatones, $N=3$) | 🟢 CUMPLE |
+| **Tasa de Falsos Negativos (FRR)** | $\le 5.0\%$ | **0.0%** (0/40 asistentes) | 🟢 CUMPLE |
+
+Reproducir estas cifras exactamente:
+
+```bash
+PYTHONPATH=. python calibration_tools/loocv_evaluator.py --seed 42 --repeats 30
+PYTHONPATH=. python calibration_tools/threshold_tuner.py --seed 42
+```
+
+**Sobre FAR/FRR:** con $N=1$ el FAR es del 35% (peatones cuya posición estimada cae dentro del
+aula por error del WKNN) y baja a 0% al exigir $N=3$ lecturas sostenidas. Con un muestreo cada
+1.5 s, $N=3$ cubre unos 4.5 segundos: es inmunidad frente a quien **pasa** por delante de la
+puerta, no frente a quien **se detiene** a conversar en el umbral. Ver §4.5 del reporte de
+validación.
 
 ---
 
