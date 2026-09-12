@@ -2,18 +2,80 @@
 Generador de Radio-Mapa de Calibración para el Edificio Escolar (4 Pisos, 12 Salones).
 Genera la base de datos de huellas de señal (Radio Map) con 40 Puntos de Referencia (RPs)
 utilizando el modelo físico de propagación en interiores (RADAR / Horus).
+
+Muestreo
+--------
+Cada punto de referencia se calibra tomando una ráfaga de lecturas, igual que hace el modo
+calibrador del cliente Android, y se guardan media y desviación estándar por BSSID. La versión
+anterior declaraba `sample_count=15` pero tomaba **una sola** lectura de `calculate_rssi`, de
+modo que la "media" era un único valor ruidoso y `rssi_std` quedaba vacío en las 40 entradas.
+
+Los AP que no se detectan en una ráfaga concreta aportan `ABSENT_RSSI_DBM` a la media, en lugar
+de excluirse. Excluirlos produce sesgo de supervivencia: un AP visto en 2 de 15 ráfagas recibiría
+la media de sus dos lecturas más fuertes. El criterio replica el del cliente Android.
 """
-import os
+import argparse
 import json
-import math
-from typing import List, Dict
+import os
+import random
+from statistics import mean, pstdev
+from typing import Dict, List
+
 from backend.domain.building import Point2D
 from backend.domain.fingerprint import ReferencePoint, RadioMapEntry
 from backend.domain.graph import create_default_school_graph
 from mobile_app.virtual_sensor.virtual_scanner import SimulatedAP
+from calibration_tools.console import enable_unicode_output
 
-def generate_school_radio_map(output_path: str = "data/radio_map.json"):
+DEFAULT_OUTPUT = "data/radio_map.json"
+DEFAULT_SEED = 42
+DEFAULT_SAMPLES = 15
+
+DETECTION_THRESHOLD_DBM = -95.0   # Sensibilidad del receptor
+ABSENT_RSSI_DBM = -105.0          # Igual que WKNNConfig.default_absent_rssi
+MIN_DETECTION_RATE = 0.30         # Igual que CalibratorManager.MIN_DETECTION_RATE
+
+
+def _calibrate_point(aps: List[SimulatedAP], floor: int, position: Point2D, samples: int):
+    """
+    Simula una ráfaga de calibración en un punto y devuelve (medias, desviaciones).
+
+    Replica el procedimiento del calibrador real: varias lecturas consecutivas, imputación del
+    valor suelo cuando el AP no se detecta, y descarte de los AP demasiado intermitentes.
+    """
+    observations: Dict[str, List[float]] = {ap.bssid: [] for ap in aps}
+
+    for _ in range(samples):
+        for ap in aps:
+            value = ap.calculate_rssi(floor, position.x, position.y)
+            # El AP solo entra en la lectura si supera la sensibilidad del receptor
+            observations[ap.bssid].append(
+                value if value > DETECTION_THRESHOLD_DBM else ABSENT_RSSI_DBM
+            )
+
+    means: Dict[str, float] = {}
+    stds: Dict[str, float] = {}
+
+    for bssid, values in observations.items():
+        detections = sum(1 for v in values if v > ABSENT_RSSI_DBM)
+        if detections / samples < MIN_DETECTION_RATE:
+            continue
+        means[bssid] = round(mean(values), 1)
+        stds[bssid] = round(pstdev(values), 2) if len(values) > 1 else 0.0
+
+    return means, stds
+
+
+def generate_school_radio_map(
+    output_path: str = DEFAULT_OUTPUT,
+    seed: int = DEFAULT_SEED,
+    samples: int = DEFAULT_SAMPLES,
+):
     """Genera y guarda el dataset de calibración de 40 puntos de referencia."""
+    # `SimulatedAP.calculate_rssi` usa el módulo `random`, así que la semilla se fija aquí para
+    # que el dataset sea reproducible entre ejecuciones.
+    random.seed(seed)
+
     graph, floors = create_default_school_graph()
 
     # Configuración de 12 Access Points distribuidos en los 4 pisos
@@ -25,38 +87,38 @@ def generate_school_radio_map(output_path: str = "data/radio_map.json"):
 
     entries: List[RadioMapEntry] = []
 
+    def add_entry(rp: ReferencePoint, floor: int, position: Point2D) -> None:
+        means, stds = _calibrate_point(aps, floor, position, samples)
+        entries.append(RadioMapEntry(
+            reference_point=rp,
+            rssi_means=means,
+            rssi_std=stds,
+            sample_count=samples
+        ))
+
     # 1. Puntos de Referencia en Salones (Centro y Entrada de cada aula: 24 puntos)
     for floor_num, fl in floors.items():
         for r in fl.rooms:
-            # RP Centro del Salón
-            rp_center = ReferencePoint(
-                id=f"RP_{r.id}_Center",
-                floor_number=floor_num,
-                position=r.center,
-                label=f"Centro del {r.name}",
-                room_id=r.id
+            add_entry(
+                ReferencePoint(
+                    id=f"RP_{r.id}_Center",
+                    floor_number=floor_num,
+                    position=r.center,
+                    label=f"Centro del {r.name}",
+                    room_id=r.id
+                ),
+                floor_num, r.center
             )
-            rssi_center = {}
-            for ap in aps:
-                val = ap.calculate_rssi(floor_num, r.center.x, r.center.y)
-                if val > -95.0:
-                    rssi_center[ap.bssid] = val
-            entries.append(RadioMapEntry(reference_point=rp_center, rssi_means=rssi_center, sample_count=15))
-
-            # RP Entrada del Salón
-            rp_entrance = ReferencePoint(
-                id=f"RP_{r.id}_Door",
-                floor_number=floor_num,
-                position=r.entrance,
-                label=f"Puerta de Acceso del {r.name}",
-                room_id=r.id
+            add_entry(
+                ReferencePoint(
+                    id=f"RP_{r.id}_Door",
+                    floor_number=floor_num,
+                    position=r.entrance,
+                    label=f"Puerta de Acceso del {r.name}",
+                    room_id=r.id
+                ),
+                floor_num, r.entrance
             )
-            rssi_entrance = {}
-            for ap in aps:
-                val = ap.calculate_rssi(floor_num, r.entrance.x, r.entrance.y)
-                if val > -95.0:
-                    rssi_entrance[ap.bssid] = val
-            entries.append(RadioMapEntry(reference_point=rp_entrance, rssi_means=rssi_entrance, sample_count=15))
 
     # 2. Puntos de Referencia en Pasillos (3 por piso: 12 puntos)
     for floor_num in range(1, 5):
@@ -66,29 +128,23 @@ def generate_school_radio_map(output_path: str = "data/radio_map.json"):
             (f"RP_P{floor_num}_Hall_E", Point2D(18.0, 5.0), f"Pasillo Este Piso {floor_num}")
         ]
         for rp_id, pos, label in hallways:
-            rp = ReferencePoint(id=rp_id, floor_number=floor_num, position=pos, label=label)
-            rssi_map = {}
-            for ap in aps:
-                val = ap.calculate_rssi(floor_num, pos.x, pos.y)
-                if val > -95.0:
-                    rssi_map[ap.bssid] = val
-            entries.append(RadioMapEntry(reference_point=rp, rssi_means=rssi_map, sample_count=15))
+            add_entry(
+                ReferencePoint(id=rp_id, floor_number=floor_num, position=pos, label=label),
+                floor_num, pos
+            )
 
     # 3. Puntos de Referencia en Escaleras (1 por piso: 4 puntos)
     for floor_num in range(1, 5):
         stair_pos = Point2D(10.0, 8.0)
-        rp = ReferencePoint(
-            id=f"RP_P{floor_num}_Stairs",
-            floor_number=floor_num,
-            position=stair_pos,
-            label=f"Descanso de Escalera Piso {floor_num}"
+        add_entry(
+            ReferencePoint(
+                id=f"RP_P{floor_num}_Stairs",
+                floor_number=floor_num,
+                position=stair_pos,
+                label=f"Descanso de Escalera Piso {floor_num}"
+            ),
+            floor_num, stair_pos
         )
-        rssi_map = {}
-        for ap in aps:
-            val = ap.calculate_rssi(floor_num, stair_pos.x, stair_pos.y)
-            if val > -95.0:
-                rssi_map[ap.bssid] = val
-        entries.append(RadioMapEntry(reference_point=rp, rssi_means=rssi_map, sample_count=15))
 
     # Guardar en archivo JSON
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
@@ -96,8 +152,22 @@ def generate_school_radio_map(output_path: str = "data/radio_map.json"):
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(serialized, f, indent=2, ensure_ascii=False)
 
-    print(f"✅ Radio-Mapa generado exitosamente con {len(entries)} Puntos de Referencia en: {output_path}")
+    aps_per_rp = sum(len(e.rssi_means) for e in entries) / len(entries)
+    print(f"✅ Radio-Mapa generado con {len(entries)} Puntos de Referencia en: {output_path}")
+    print(f"   Semilla {seed} | {samples} muestras por punto | {aps_per_rp:.1f} APs por punto de media")
     return entries
 
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Generador del radio-mapa sintético de calibración")
+    parser.add_argument("--output", default=DEFAULT_OUTPUT, help="Ruta del fichero a generar")
+    parser.add_argument("--seed", type=int, default=DEFAULT_SEED, help="Semilla de reproducibilidad")
+    parser.add_argument("--samples", type=int, default=DEFAULT_SAMPLES,
+                        help="Lecturas por ráfaga de calibración en cada punto")
+    args = parser.parse_args()
+    generate_school_radio_map(args.output, args.seed, args.samples)
+
+
 if __name__ == "__main__":
-    generate_school_radio_map()
+    enable_unicode_output()
+    main()

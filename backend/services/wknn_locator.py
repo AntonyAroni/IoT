@@ -41,11 +41,20 @@ class WKNNPositioningService:
             for bssid in all_bssids:
                 r_online = online_readings.get(bssid, self.config.default_absent_rssi)
                 r_offline = entry.rssi_means.get(bssid, self.config.default_absent_rssi)
+                delta = r_online - r_offline
+
+                # Ponderación por varianza (Horus): normalizar la discrepancia por la
+                # desviación estándar medida en calibración, para que un AP inestable no
+                # contamine la distancia tanto como uno estable.
+                if self.config.use_std_weighting:
+                    std = entry.rssi_std.get(bssid)
+                    if std is not None:
+                        delta /= max(std, self.config.min_std_dbm)
 
                 if self.config.metric == "manhattan":
-                    dist_sq += abs(r_online - r_offline)
+                    dist_sq += abs(delta)
                 else:
-                    dist_sq += (r_online - r_offline) ** 2
+                    dist_sq += delta ** 2
 
             dist = dist_sq if self.config.metric == "manhattan" else math.sqrt(dist_sq)
             neighbor_distances.append((entry, dist))

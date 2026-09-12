@@ -35,8 +35,8 @@ En entornos cerrados y edificios de múltiples niveles (como escuelas, universid
 Este proyecto resuelve la localización en interiores utilizando la infraestructura existente de **puntos de acceso Wi-Fi (AP)** mediante la técnica de **Radio Fingerprinting**. El sistema modela un edificio de **4 pisos y 12 salones** (3 aulas por piso: `S101`-`S103`, `S201`-`S203`, `S301`-`S303`, `S401`-`S403`), pasillos centrales y núcleo de escaleras.
 
 ### Capacidades Principales
-- 🏢 **Detección Jerárquica de Piso:** Identificación del nivel aprovechando la atenuación de losas de concreto (~14 dBm/piso); **99.2%** de acierto en validación simulada.
-- 📍 **Posicionamiento 2D Continuo (WKNN):** Algoritmo *Weighted k-Nearest Neighbors* con error medio de **1.73 m** ($k=2$) en validación simulada — ver las limitaciones del modelo en `calibration_tools/validation_report.md`.
+- 🏢 **Detección Jerárquica de Piso:** Identificación del nivel aprovechando la atenuación de losas de concreto (~14 dBm/piso); **100%** de acierto en validación simulada.
+- 📍 **Posicionamiento 2D Continuo (WKNN):** Algoritmo *Weighted k-Nearest Neighbors* con error medio de **1.70 m** ($k=2$) en validación simulada — ver las limitaciones del modelo en `calibration_tools/validation_report.md`.
 - 🧭 **Navegación Paso a Paso (*Turn-by-Turn*):** Grafo dirigido con algoritmo de Dijkstra que emite instrucciones dinámicas en tiempo real (*"Sube a la escalera al piso 3"*, *"Gira a la derecha hacia el Salón 302 a 4 m"*, *"¡Has llegado!"*).
 - ⏱️ **Asistencia Inteligente sin Contacto:** Algoritmo con ventana temporal de permanencia ($N=3$ escaneos continuos que superen $-70\text{ dBm}$ **y** estén a $\le 4\text{ m}$ del centro del aula) que previene falsos positivos causados por alumnos que solo transitan por el pasillo frente a la puerta abierta.
 - 💻 **Radar de Proximidad en Aulas:** Dashboard interactivo en tiempo real para las laptops docentes de cada aula con visualización de radar, notificaciones sonoras y registro automático persistente.
@@ -380,11 +380,11 @@ Validación LOOCV sobre 40 RPs sintéticos, semilla 42, 30 repeticiones (media �
 
 | Métrica | Objetivo de Diseño | Resultado Obtenido | Estado |
 | :--- | :---: | :---: | :---: |
-| **Aislamiento de Piso** | $\ge 95.0\%$ | **99.2 ± 1.2%** (mín. 97.5%) | 🟢 CUMPLE |
-| **Error Medio 2D ($k=2$)** | $\le 2.50\text{ m}$ | **1.73 ± 0.05 m** | 🟢 CUMPLE |
-| **Error Mediano 2D** | $\le 2.20\text{ m}$ | **1.98 ± 0.02 m** | 🟢 CUMPLE |
-| **Percentil 90 del Error** | $\le 4.00\text{ m}$ | **2.71 ± 0.02 m** | 🟢 CUMPLE |
-| **RMSE Métrico** | $\le 3.00\text{ m}$ | **2.16 ± 0.10 m** | 🟢 CUMPLE |
+| **Aislamiento de Piso** | $\ge 95.0\%$ | **100.0 ± 0.0%** | 🟢 CUMPLE |
+| **Error Medio 2D ($k=2$)** | $\le 2.50\text{ m}$ | **1.70 ± 0.02 m** | 🟢 CUMPLE |
+| **Error Mediano 2D** | $\le 2.20\text{ m}$ | **2.14 ± 0.04 m** | 🟢 CUMPLE |
+| **Percentil 90 del Error** | $\le 4.00\text{ m}$ | **2.74 ± 0.03 m** | 🟢 CUMPLE |
+| **RMSE Métrico** | $\le 3.00\text{ m}$ | **2.03 ± 0.04 m** | 🟢 CUMPLE |
 | **Tasa de Falsos Positivos (FAR)** | $\le 5.0\%$ | **0.0%** (0/40 peatones, $N=3$) | 🟢 CUMPLE |
 | **Tasa de Falsos Negativos (FRR)** | $\le 5.0\%$ | **0.0%** (0/40 asistentes) | 🟢 CUMPLE |
 

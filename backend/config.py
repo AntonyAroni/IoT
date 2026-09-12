@@ -35,6 +35,13 @@ class WKNNConfig:
     default_absent_rssi: float = -105.0  # RSSI asignado cuando un AP no es detectado
     metric: str = "euclidean"  # 'euclidean' o 'manhattan'
 
+    # Ponderación por varianza al estilo Horus (Youssef & Agrawala, 2005): cada término de la
+    # distancia se divide por la desviación estándar del BSSID medida en calibración, de modo
+    # que un AP inestable pesa menos que uno estable. Requiere que el radio-mapa traiga
+    # `rssi_std`; sin ese dato la opción no tiene efecto.
+    use_std_weighting: bool = False
+    min_std_dbm: float = 1.0  # Suelo de la desviación, para no dividir por valores diminutos
+
 
 @dataclass(frozen=True)
 class AttendanceConfig:

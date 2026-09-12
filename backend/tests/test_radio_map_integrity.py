@@ -111,6 +111,31 @@ class TestRadioMapIntegrity(unittest.TestCase):
             f"Cobertura de pisos inesperada: {dict(per_floor)}"
         )
 
+    def test_calibration_statistics_are_actually_sampled(self):
+        """
+        `sample_count` debe corresponder a un muestreo real, con su desviación estándar.
+
+        El generador declaraba `sample_count=15` pero tomaba **una sola** lectura por AP, así que
+        la "media" era un único valor ruidoso y `rssi_std` quedaba vacío en las 40 entradas. La
+        ponderación probabilística que cita el proyecto (Horus) no tenía datos sobre los que
+        operar.
+        """
+        without_std = [e["id"] for e in self.entries if not e.get("rssi_std")]
+        self.assertEqual(
+            without_std, [],
+            f"Entradas sin desviación estándar: {without_std}. {REGENERATE_HINT}"
+        )
+
+        for entry in self.entries:
+            self.assertGreater(
+                entry["sample_count"], 1,
+                f"{entry['id']} declara {entry['sample_count']} muestras"
+            )
+            self.assertEqual(
+                set(entry["rssi_std"]), set(entry["rssi_means"]),
+                f"{entry['id']}: media y desviación cubren BSSIDs distintos"
+            )
+
     def test_no_duplicate_positions_within_a_floor(self):
         """
         Dos RPs del mismo piso no pueden compartir coordenada.

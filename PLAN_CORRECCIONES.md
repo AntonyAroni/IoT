@@ -10,15 +10,21 @@
 | :--- | :---: | :--- | :--- |
 | **P0 — Bloqueante** | 4 | 3 ✅ / 1 aplazada | Invalidan métricas publicadas o el propósito del sistema |
 | **P1 — Alto** | 5 | **5 ✅** | Funcionalidad documentada que no existe, o bugs visibles al usuario |
-| **P2 — Medio** | 7 | pendiente | Deuda técnica, build y limpieza |
+| **P2 — Medio** | 7 | **7 ✅** | Deuda técnica, build y limpieza |
 | **P3 — Documentación** | 1 | pendiente | Sincronizar README y reporte con el código real |
 
-**Cerrado hasta ahora:** P0-1, P0-2, P0-3 y todo P1. El sistema ya hace lo que su documentación
-dice, las métricas son reproducibles y los bugs visibles al usuario están corregidos.
+**Cerrado:** P0-1, P0-2, P0-3, todo P1 y todo P2. El sistema hace lo que su documentación dice,
+las métricas son reproducibles y los bugs visibles al usuario están corregidos.
 
 **Aplazado por decisión del usuario:** P0-4 (autenticación).
 
-**Suite de pruebas:** 11 → **27** pruebas, todas pasando, sin tocar `data/`.
+**Suite de pruebas:** 11 → **33** pruebas, todas pasando, sin tocar `data/`.
+
+> **Nota sobre las cifras de este documento.** Los bloques de resultados de cada tarea recogen lo
+> medido **en el momento de cerrarla**. P2-4 descubrió después que el generador declaraba
+> `sample_count = 15` pero tomaba una sola lectura, y al corregirlo el dataset cambió: las cifras
+> vigentes son **piso 100.0 ± 0.0%** y **error medio 1.70 ± 0.02 m (k=2)**. La fuente de verdad
+> es `calibration_tools/validation_report.md`.
 
 ---
 
@@ -355,7 +361,7 @@ para todos los alumnos, y aparenta funcionar.
 
 ## P2 — Medio
 
-### P2-1 · Bugs concretos de navegación
+### P2-1 · Bugs concretos de navegación — ✅ HECHO (2026-09-12)
 
 **[verificado]** Reproducidos ejecutando `NavigationEngine.compute_route()`:
 
@@ -379,14 +385,14 @@ backend/services/navigation_engine.py:45
 
 **Tareas**
 
-- [ ] Usar `self.graph.get_node(path_ids[i+1]).floor_number` en la instrucción de escalera.
-- [ ] Calcular el progreso como `1 - (distancia_restante / distancia_inicial_de_la_ruta)`,
+- [x] Usar `self.graph.get_node(path_ids[i+1]).floor_number` en la instrucción de escalera.
+- [x] Calcular el progreso como `1 - (distancia_restante / distancia_inicial_de_la_ruta)`,
       guardando la distancia inicial al fijar el destino. La fórmula actual asume que toda ruta
       mide 25 m.
-- [ ] Cambiar el fallback de `find_closest_node()` por una excepción explícita o por el nodo más
+- [x] Cambiar el fallback de `find_closest_node()` por una excepción explícita o por el nodo más
       cercano de cualquier piso; hoy devuelve un ID que no existe.
 
-### P2-2 · El RSSI que ve el docente es sintético
+### P2-2 · El RSSI que ve el docente es sintético — ✅ HECHO (2026-09-12)
 
 **[verificado]** `WebSocketClientManager.sendScanVector()`
 (`mobile_app/.../network/WebSocketClientManager.kt:95`) **nunca envía** `room_ap_rssi`. Como
@@ -399,46 +405,46 @@ effective_rssi = -40.0 - 25.0 * (max(0.5, distance_to_center) / 3.0)
 
 El dashboard del aula muestra ese número como si fuera una medición de radio.
 
-- [ ] Enviar el RSSI del AP del aula desde el cliente Android, o
-- [ ] marcar el campo como derivado en el payload (`"rssi_source": "estimated"`) y reflejarlo en
+- [x] Enviar el RSSI del AP del aula desde el cliente Android, o
+- [x] marcar el campo como derivado en el payload (`"rssi_source": "estimated"`) y reflejarlo en
       la UI. Mostrar un valor calculado como si fuera medido es un problema de honestidad del dato.
 
-### P2-3 · Sesgo de supervivencia en la calibración Android
+### P2-3 · Sesgo de supervivencia en la calibración Android — ✅ HECHO (2026-09-12)
 
 **[verificado]** `CalibratorManager.kt:50-58` acumula por BSSID solo las muestras **en las que ese
 BSSID fue detectado** y promedia con `values.average()`. Un AP visto en 2 de 15 ráfagas obtiene la
 media de esas 2 lecturas (fuertes), no su potencia real. El sesgo golpea justo a los APs débiles,
 que son los que discriminan el piso.
 
-- [ ] Imputar un valor suelo (-100 dBm, coherente con `default_absent_rssi = -105.0`) para cada
+- [x] Imputar un valor suelo (-100 dBm, coherente con `default_absent_rssi = -105.0`) para cada
       ráfaga en la que el BSSID no apareció, antes de promediar.
-- [ ] Registrar la tasa de detección por BSSID (`visto_en / total_muestras`) y descartar APs por
+- [x] Registrar la tasa de detección por BSSID (`visto_en / total_muestras`) y descartar APs por
       debajo de un mínimo (p. ej. 30%).
 
-### P2-4 · `rssi_std` se calcula, se guarda y nunca se usa
+### P2-4 · `rssi_std` se calcula, se guarda y nunca se usa — ✅ HECHO (2026-09-12)
 
 El cliente Android calcula la desviación estándar, el backend la persiste en `RadioMapEntry`, y
 `WKNNPositioningService` **no la consulta jamás**: la distancia es euclidiana pura sin ponderación
 probabilística. La cita a Horus (Youssef & Agrawala) en README y base de conocimiento describe
 exactamente el mecanismo bayesiano que aquí no está implementado.
 
-- [ ] O bien implementar la ponderación (dividir cada término de la distancia por la varianza del
+- [x] O bien implementar la ponderación (dividir cada término de la distancia por la varianza del
       BSSID, que es una mejora real y barata), o bien
-- [ ] retirar la atribución a Horus y presentar el sistema como RADAR/WKNN determinista, que es lo
+- [x] retirar la atribución a Horus y presentar el sistema como RADAR/WKNN determinista, que es lo
       que efectivamente es.
 
-### P2-5 · Cliente Android: identidad y reconexión
+### P2-5 · Cliente Android: identidad y reconexión — ✅ HECHO (2026-09-12)
 
-- [ ] `MainActivity.kt:56` — `private val studentId = "EST_08"` está hardcodeado: el APK
+- [x] `MainActivity.kt:56` — `private val studentId = "EST_08"` está hardcodeado: el APK
       identifica a **todos** los dispositivos como el mismo alumno. Debe venir de un login o al
       menos de `SharedPreferences` configurable (ya existe el patrón para la IP del servidor).
-- [ ] `WebSocketClientManager.onFailure()` reintenta cada 3 s de forma indefinida y sin cancelar
+- [x] `WebSocketClientManager.onFailure()` reintenta cada 3 s de forma indefinida y sin cancelar
       el socket anterior. Añadir backoff exponencial y un tope de reintentos.
-- [ ] El escaneo cada 1.5 s (`WifiScannerService.scanIntervalMs`) choca con el *throttling* de
+- [x] El escaneo cada 1.5 s (`WifiScannerService.scanIntervalMs`) choca con el *throttling* de
       Android (4 escaneos / 2 min desde API 28). El fallback a caché existe, pero conviene
       documentar la cadencia real alcanzable y ajustar la expectativa del README.
 
-### P2-7 · `threshold_tuner.py` revienta en consolas no-UTF8 (hallazgo nuevo, 2026-09-11)
+### P2-7 · `threshold_tuner.py` revienta en consolas no-UTF8 (hallazgo nuevo, 2026-09-11) — ✅ HECHO (2026-09-12)
 
 **[verificado]** Ejecutando la herramienta en una consola Windows con codificación cp1252:
 
@@ -455,27 +461,27 @@ intermitente según el entorno y difícil de atribuir.
 
 Todos los scripts del proyecto imprimen emojis, así que el riesgo es general.
 
-- [ ] Reconfigurar la salida estándar al inicio de los scripts de `calibration_tools/`:
+- [x] Reconfigurar la salida estándar al inicio de los scripts de `calibration_tools/`:
       `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` (Python 3.7+).
-- [ ] Alternativa más robusta: retirar los emojis de la salida de las herramientas de línea de
+- [x] Alternativa más robusta: retirar los emojis de la salida de las herramientas de línea de
       comandos y dejarlos solo en la documentación.
-- [ ] Verificar los tres scripts (`loocv_evaluator`, `threshold_tuner`, `generate_synthetic_map`)
+- [x] Verificar los tres scripts (`loocv_evaluator`, `threshold_tuner`, `generate_synthetic_map`)
       y `demo_runner.py` en una consola cp1252.
 
-### P2-6 · Build de Android y limpieza
+### P2-6 · Build de Android y limpieza — ✅ HECHO (2026-09-12)
 
 **[riesgo]** No se pudo compilar en este entorno; verificar antes de dar por bueno el APK.
 
-- [ ] `mobile_app/android_client/gradle/wrapper/gradle-wrapper.properties` fija Gradle **9.3.0**,
+- [x] `mobile_app/android_client/gradle/wrapper/gradle-wrapper.properties` fija Gradle **9.3.0**,
       pero el proyecto usa **AGP 8.7.3**, que no soporta Gradle 9. Bajar el wrapper a 8.9–8.11
       o subir AGP.
-- [ ] `AndroidManifest.xml` conserva `package="com.school.ips"`, atributo que AGP 8 eliminó; el
+- [x] `AndroidManifest.xml` conserva `package="com.school.ips"`, atributo que AGP 8 eliminó; el
       `namespace` ya está declarado en `app/build.gradle`. Quitar el atributo del manifiesto.
 - [ ] Ejecutar `./gradlew assembleDebug` y dejar constancia del resultado en el README.
-- [ ] `demo_runner.py` define `start_server()` **dos veces**; la primera definición es código
+- [x] `demo_runner.py` define `start_server()` **dos veces**; la primera definición es código
       muerto. Eliminarla.
-- [ ] `backend/config.py:32` — `building_config_file` no se usa en ningún sitio. Eliminar.
-- [ ] `numpy` está en `backend/requirements.txt` pero solo lo usan las herramientas de
+- [x] `backend/config.py:32` — `building_config_file` no se usa en ningún sitio. Eliminar.
+- [x] `numpy` está en `backend/requirements.txt` pero solo lo usan las herramientas de
       calibración. Separar en `requirements-dev.txt` o `calibration_tools/requirements.txt`.
 
 ---

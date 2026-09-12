@@ -58,7 +58,7 @@ despliegues reales:
 
 **Consecuencia:** los errores aquí reportados deben interpretarse como una **cota inferior
 optimista**. La literatura sitúa el error típico de WKNN en despliegues reales en 3–5 m
-(Bahl & Padmanabhan, 2000; Torres-Sospedra et al., 2014), frente a los 1.73 m de esta simulación.
+(Bahl & Padmanabhan, 2000; Torres-Sospedra et al., 2014), frente a los 1.70 m de esta simulación.
 
 ---
 
@@ -93,14 +93,14 @@ PYTHONPATH=. python calibration_tools/loocv_evaluator.py --seed 42 --repeats 30
 ```
  k  | Error Medio 2D  | Error Mediano   | Percentil 90    | RMSE
 ----+-----------------+-----------------+-----------------+-----------------
- 1  | 1.90 ± 0.03 m   | 2.00 ± 0.00 m   | 3.00 ± 0.00 m   | 2.09 ± 0.03 m
- 2  | 1.73 ± 0.05 m   | 1.98 ± 0.02 m   | 2.71 ± 0.02 m   | 2.16 ± 0.10 m   <- ÓPTIMO
- 3  | 2.22 ± 0.02 m   | 1.79 ± 0.03 m   | 3.81 ± 0.08 m   | 2.57 ± 0.04 m
- 4  | 2.65 ± 0.03 m   | 2.34 ± 0.05 m   | 4.31 ± 0.09 m   | 2.91 ± 0.02 m
- 5  | 2.79 ± 0.04 m   | 2.55 ± 0.04 m   | 4.47 ± 0.07 m   | 3.09 ± 0.03 m
+ 1  | 2.07 ± 0.05 m   | 2.02 ± 0.09 m   | 3.00 ± 0.00 m   | 2.26 ± 0.05 m
+ 2  | 1.70 ± 0.02 m   | 2.14 ± 0.04 m   | 2.74 ± 0.03 m   | 2.03 ± 0.04 m   <- ÓPTIMO
+ 3  | 2.03 ± 0.02 m   | 1.82 ± 0.03 m   | 3.33 ± 0.02 m   | 2.42 ± 0.02 m
+ 4  | 2.30 ± 0.03 m   | 2.02 ± 0.03 m   | 3.52 ± 0.07 m   | 2.59 ± 0.03 m
+ 5  | 2.28 ± 0.03 m   | 2.24 ± 0.04 m   | 3.68 ± 0.08 m   | 2.57 ± 0.03 m
 ```
 
-**Precisión de aislamiento de piso: 99.2 ± 1.2%** (peor repetición: 97.5%).
+**Precisión de aislamiento de piso: 100.0 ± 0.0%** en las 30 repeticiones.
 
 > Esta métrica **no depende de k**: `FloorClassifierService` no usa ese hiperparámetro. Que
 > versiones anteriores del reporte mostraran la precisión de piso variando por fila era un
@@ -110,24 +110,31 @@ PYTHONPATH=. python calibration_tools/loocv_evaluator.py --seed 42 --repeats 30
 
 | Métrica | Objetivo | Resultado (k=2) | Estado |
 | :--- | :---: | :---: | :---: |
-| Aislamiento de piso | ≥ 95.0% | 99.2 ± 1.2% (mín. 97.5%) | 🟢 CUMPLE |
-| Error medio 2D | ≤ 2.50 m | 1.73 ± 0.05 m | 🟢 CUMPLE |
-| Error mediano 2D | ≤ 2.20 m | 1.98 ± 0.02 m | 🟢 CUMPLE |
-| Percentil 90 del error | ≤ 4.00 m | 2.71 ± 0.02 m | 🟢 CUMPLE |
-| RMSE métrico | ≤ 3.00 m | 2.16 ± 0.10 m | 🟢 CUMPLE |
+| Aislamiento de piso | ≥ 95.0% | 100.0 ± 0.0% | 🟢 CUMPLE |
+| Error medio 2D | ≤ 2.50 m | 1.70 ± 0.02 m | 🟢 CUMPLE |
+| Error mediano 2D | ≤ 2.20 m | 2.14 ± 0.04 m | 🟢 CUMPLE |
+| Percentil 90 del error | ≤ 4.00 m | 2.74 ± 0.03 m | 🟢 CUMPLE |
+| RMSE métrico | ≤ 3.00 m | 2.03 ± 0.04 m | 🟢 CUMPLE |
 
 Todos los objetivos se cumplen **dentro del marco simulado descrito en §1**.
 
+> **Cambio respecto a versiones anteriores de este reporte.** El generador declaraba
+> `sample_count = 15` pero tomaba **una sola** lectura por punto, de modo que la "media" de cada
+> BSSID era un único valor ruidoso y `rssi_std` quedaba vacío en las 40 entradas. Ahora cada
+> punto se calibra con una ráfaga real de 15 lecturas. Promediar el ruido de calibración es lo
+> que lleva el aislamiento de piso de 99.2 ± 1.2% a 100.0 ± 0.0%, y no una mejora del algoritmo.
+
 ### 3.2 Conclusiones sobre el hiperparámetro k
 
-1. **k = 2 minimiza el error medio** (1.73 m) con la densidad de referencia empleada
-   (1 RP cada 3–8 m). El margen sobre k=1 (1.90 m) es pequeño pero consistente: la desviación
-   entre repeticiones es de solo 0.03–0.05 m.
-2. **k ≥ 4 incumple el objetivo de percentil 90** (4.31 m y 4.47 m frente al límite de 4.00 m):
-   promediar demasiados vecinos arrastra la estimación hacia el centroide del piso.
-3. **k = 3 minimiza la *mediana*** (1.79 m) pese a tener peor media que k=2. Es decir, k=3 acierta
-   más a menudo pero falla peor cuando falla. Para guiado paso a paso interesa acotar la cola
-   (percentil 90), lo que favorece a k=2.
+1. **k = 2 minimiza el error medio** (1.70 m) con la densidad de referencia empleada
+   (1 RP cada 3–8 m), y también el RMSE (2.03 m). El margen sobre k=1 (2.07 m) es consistente:
+   la desviación entre repeticiones es de solo 0.02–0.05 m.
+2. **k = 3 minimiza la *mediana*** (1.82 m frente a 2.14 m de k=2) pese a tener peor media. Es
+   decir, k=3 acierta más a menudo pero falla peor cuando falla. Para guiado paso a paso interesa
+   acotar la cola del error, y ahí k=2 gana con claridad (percentil 90 de 2.74 m frente a 3.33 m).
+3. **El error crece de forma monótona a partir de k=3**: promediar demasiados vecinos arrastra la
+   estimación hacia el centroide del piso. Ningún valor de k llega a incumplir el objetivo de
+   percentil 90 con este dataset, pero la tendencia es inequívoca.
 
 > ⚠️ **Discrepancia pendiente con el código.** `backend/config.py` define `WKNNConfig.k = 3`,
 > no el óptimo k=2 que arroja esta validación. Hay que alinear el valor por defecto o justificar
@@ -275,7 +282,44 @@ inmunidad frente a quien *pasa*, no frente a quien *se detiene*.
 4. **Torres-Sospedra, J., et al. (2014).** *UJIIndoorLoc: A new multi-building and multi-floor
    database for WLAN fingerprint-based indoor localization problems.* IEEE IPIN.
 
-> **Nota sobre la referencia a Horus.** El sistema persiste la desviación estándar por BSSID
-> (`RadioMapEntry.rssi_std`) pero **no la utiliza**: `WKNNPositioningService` calcula una distancia
-> euclidiana sin ponderación probabilística. El aporte de Horus —el modelado bayesiano de la
-> incertidumbre del RSSI— está citado pero no implementado. Ver `PLAN_CORRECCIONES.md`, P2-4.
+### 6.1 Sobre la referencia a Horus: implementada y medida, pero desactivada
+
+El aporte de Horus es ponderar cada término de la distancia por la incertidumbre del BSSID, de
+modo que un AP inestable pese menos que uno estable. En versiones anteriores el sistema
+persistía `rssi_std` pero no lo usaba en ningún sitio: la cita era decorativa.
+
+La ponderación está ahora implementada (`WKNNConfig.use_std_weighting`), que divide cada
+discrepancia por la desviación estándar medida en calibración. Se comparó contra la distancia
+euclidiana pura, 30 repeticiones de LOOCV sobre el mismo dataset:
+
+```
+ k  | Euclidiano  | Ponderado por std |  Delta
+----+-------------+-------------------+---------
+ 1  |   2.07 m    |      2.25 m       |  +0.18   peor
+ 2  |   1.70 m    |      1.90 m       |  +0.20   peor
+ 3  |   2.03 m    |      2.08 m       |  +0.05   peor
+ 4  |   2.30 m    |      2.29 m       |  -0.02   igual
+ 5  |   2.28 m    |      2.23 m       |  -0.05   mejor
+```
+
+**No aporta nada en este dataset, y en el k óptimo empeora.** La razón es del modelo, no del
+algoritmo: `SimulatedAP.calculate_rssi` aplica el **mismo** ruido gaussiano (σ = 1.5 dB) a todos
+los puntos de acceso, así que no existe la heterogeneidad de estabilidad que la ponderación
+pretende explotar. Dividir por desviaciones prácticamente idénticas no aporta información y sí
+añade el error de estimar esas desviaciones con 15 muestras.
+
+Por eso la opción queda **desactivada por defecto**, y no porque no esté implementada. En un
+despliegue real, donde un AP junto a una puerta de ascensor sí es medibles veces más inestable
+que uno de pasillo, cabe esperar que la conclusión se invierta: la opción está disponible para
+comprobarlo cuando exista un radio-mapa de campo.
+
+Reproducir la comparación:
+
+```bash
+PYTHONPATH=. python -c "
+from calibration_tools.loocv_evaluator import evaluate_loocv
+from backend.config import WKNNConfig
+import calibration_tools.loocv_evaluator as ev
+ev.WKNNConfig = lambda k: WKNNConfig(k=k, use_std_weighting=True)
+evaluate_loocv(repeats=30)"
+```
