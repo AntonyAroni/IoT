@@ -23,9 +23,68 @@ IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
 # Código de cierre de aplicación para un identificador con formato inválido.
 WS_CLOSE_INVALID_IDENTIFIER = 4400
 
+# Código de cierre cuando falta la credencial del dispositivo o no es válida.
+WS_CLOSE_UNAUTHORIZED = 4401
+
+# Cabecera y parámetro por los que el móvil presenta su token. Se aceptan ambos porque no todos
+# los clientes de WebSocket permiten fijar cabeceras en el handshake.
+DEVICE_TOKEN_HEADER = "x-device-token"
+DEVICE_TOKEN_QUERY = "token"
+
 
 def _is_valid_identifier(value: str) -> bool:
     return bool(IDENTIFIER_PATTERN.match(value))
+
+
+def _extract_device_token(websocket: WebSocket) -> str:
+    """Toma el token de la cabecera, y si no viene, del parámetro de consulta."""
+    from_header = websocket.headers.get(DEVICE_TOKEN_HEADER, "")
+    if from_header:
+        return from_header
+    return websocket.query_params.get(DEVICE_TOKEN_QUERY, "")
+
+
+async def _authenticate_device(websocket: WebSocket, declared_student_id: str):
+    """
+    Resuelve qué alumno representa esta conexión.
+
+    Devuelve `(student_id, credencial)` si la conexión puede continuar, o `(None, None)` si ya se
+    cerró por falta de credencial.
+
+    Mientras no haya ningún dispositivo dado de alta se acepta el identificador declarado, que es
+    el comportamiento histórico: exigir token de golpe rompería la demostración, el sensor virtual
+    y la suite sintética, y lo previsible sería que alguien acabara desactivando la comprobación.
+    En cuanto se da de alta el primer dispositivo, el token pasa a ser obligatorio.
+    """
+    from ..main import app_state
+    registry = app_state.device_registry
+
+    if not registry.enforcement_enabled:
+        return declared_student_id, None
+
+    token = _extract_device_token(websocket)
+    credential = registry.resolve_token(token)
+    if credential is None:
+        logger.warning(
+            f"Rechazada conexión móvil sin credencial válida "
+            f"(student_id declarado: {declared_student_id!r})"
+        )
+        await websocket.accept()
+        await websocket.close(
+            code=WS_CLOSE_UNAUTHORIZED,
+            reason="Se requiere un token de dispositivo válido",
+        )
+        return None, None
+
+    # La identidad sale de la credencial, nunca del texto de la ruta. Si no coinciden, el
+    # dispositivo está intentando declarar ser otro alumno y conviene dejar constancia.
+    if declared_student_id != credential.student_id:
+        logger.warning(
+            f"El dispositivo '{credential.device_id}' declaró ser '{declared_student_id}' "
+            f"pero su credencial corresponde a '{credential.student_id}'. Se usa la credencial."
+        )
+
+    return credential.student_id, credential
 
 
 async def _reject_identifier(websocket: WebSocket, field: str, value: str) -> None:
@@ -106,6 +165,11 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
     # identificadores aleatorios hacía crecer la memoria sin límite.
     if not _is_valid_identifier(student_id):
         await _reject_identifier(websocket, "student_id", student_id)
+        return
+
+    # La identidad efectiva sale de la credencial del dispositivo cuando hay alguna dada de alta.
+    student_id, credential = await _authenticate_device(websocket, student_id)
+    if student_id is None:
         return
 
     if student_id not in app_state.mobile_kalman_filters:

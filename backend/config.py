@@ -172,6 +172,9 @@ class ServerConfig:
     radio_map_file: str = field(
         default_factory=lambda: _resolve_data_path("IPS_RADIO_MAP_PATH", "data/radio_map.json")
     )
+    device_registry_file: str = field(
+        default_factory=lambda: _resolve_data_path("IPS_DEVICE_REGISTRY_PATH", "data/devices.json")
+    )
     allowed_origins: List[str] = field(default_factory=_resolve_origins)
     attendance_log_file: str = field(
         default_factory=lambda: _resolve_data_path("IPS_ATTENDANCE_LOG_PATH", "data/attendance_log.json")

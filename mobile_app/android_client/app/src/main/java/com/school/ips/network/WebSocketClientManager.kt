@@ -28,7 +28,13 @@ class WebSocketClientManager(
     private val serverWsUrl: String,
     private val studentId: String,
     private val onFeedbackReceived: (MobileNavigationFeedback) -> Unit,
-    private val onStatusChanged: (Boolean, String?) -> Unit
+    private val onStatusChanged: (Boolean, String?) -> Unit,
+    /**
+     * Token entregado al dar de alta el dispositivo. Mientras el servidor no tenga ningún
+     * dispositivo registrado acepta conexiones sin él; en cuanto se registra el primero, pasa a
+     * ser obligatorio y la identidad del alumno se toma de la credencial, no de la ruta.
+     */
+    private val deviceToken: String = ""
 ) {
     private var webSocket: WebSocket? = null
     private val client = OkHttpClient.Builder()
@@ -55,7 +61,11 @@ class WebSocketClientManager(
         webSocket?.cancel()
 
         try {
-            val request = Request.Builder().url(fullUrl).build()
+            val builder = Request.Builder().url(fullUrl)
+            if (deviceToken.isNotBlank()) {
+                builder.addHeader(DEVICE_TOKEN_HEADER, deviceToken)
+            }
+            val request = builder.build()
 
             webSocket = client.newWebSocket(request, object : WebSocketListener() {
                 override fun onOpen(ws: WebSocket, response: Response) {
@@ -102,11 +112,22 @@ class WebSocketClientManager(
                 }
 
                 override fun onClosing(ws: WebSocket, code: Int, reason: String) {
-                    // El servidor cierra con 4400 cuando el identificador no cumple su formato.
-                    // Reintentar con el mismo valor no puede funcionar nunca.
+                    // 4400: el identificador no cumple el formato. 4401: falta la credencial del
+                    // dispositivo o no es válida. En ambos casos reintentar con los mismos datos
+                    // no puede funcionar, así que se inhibe la reconexión automática.
                     if (code == WS_CLOSE_INVALID_IDENTIFIER) {
-                        isClosedByUser = true   // inhibe la reconexión automática
+                        isClosedByUser = true
                         reportRejectedIdentifier(reason)
+                    } else if (code == WS_CLOSE_UNAUTHORIZED) {
+                        isClosedByUser = true
+                        val mensaje = if (deviceToken.isBlank()) {
+                            "Este servidor exige registrar el dispositivo. Pide al docente que lo " +
+                                "dé de alta y anota el token en la configuración."
+                        } else {
+                            "El token de este dispositivo no es válido o fue revocado: $reason"
+                        }
+                        Log.e("WSClient", mensaje)
+                        handler.post { onStatusChanged(false, mensaje) }
                     }
                 }
 
@@ -114,7 +135,7 @@ class WebSocketClientManager(
                     isConnected = false
                     val motivo = if (reason.isNotEmpty()) reason else "Desconectado ($code)"
                     handler.post { onStatusChanged(false, motivo) }
-                    if (code == WS_CLOSE_INVALID_IDENTIFIER) return
+                    if (code == WS_CLOSE_INVALID_IDENTIFIER || code == WS_CLOSE_UNAUTHORIZED) return
                     scheduleReconnect(motivo)
                 }
             })
@@ -196,6 +217,12 @@ class WebSocketClientManager(
     companion object {
         /** Código con el que el backend rechaza un identificador mal formado. */
         private const val WS_CLOSE_INVALID_IDENTIFIER = 4400
+
+        /** Codigo con el que el backend rechaza una conexion sin credencial de dispositivo. */
+        private const val WS_CLOSE_UNAUTHORIZED = 4401
+
+        /** Cabecera por la que el movil presenta su token de dispositivo. */
+        private const val DEVICE_TOKEN_HEADER = "X-Device-Token"
 
         /** Respuesta del handshake si el servidor cierra la conexión sin llegar a aceptarla. */
         private const val HTTP_FORBIDDEN = 403

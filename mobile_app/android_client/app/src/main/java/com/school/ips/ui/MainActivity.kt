@@ -64,9 +64,13 @@ class MainActivity : AppCompatActivity() {
     // Identidad del alumno y aula asignada. Estaban fijados como constantes, de modo que todo
     // dispositivo con el APK instalado se identificaba como el mismo alumno. Se persisten en
     // SharedPreferences igual que la IP del servidor.
-    // Nota: esto identifica, no autentica. El servidor acepta cualquier identificador que se le
-    // envíe; añadir un token por dispositivo sigue pendiente.
+    //
+    // El token del dispositivo es lo que convierte esa identidad en verificable: lo entrega el
+    // servidor al dar de alta el móvil y se presenta en el handshake. Mientras el servidor no
+    // tenga ningún dispositivo registrado puede quedar vacío; en cuanto se registra el primero,
+    // conectar sin él devuelve un cierre 4401.
     private var currentStudentId: String = DEFAULT_STUDENT_ID
+    private var currentDeviceToken: String = ""
     private var currentTargetRoomId: String = DEFAULT_ROOM_ID
 
     // Buffer de últimas lecturas Wi-Fi recibidas
@@ -91,6 +95,7 @@ class MainActivity : AppCompatActivity() {
         currentServerIp = prefs.getString("server_ip", "") ?: ""
         currentStudentId = prefs.getString("student_id", DEFAULT_STUDENT_ID) ?: DEFAULT_STUDENT_ID
         currentTargetRoomId = prefs.getString("target_room_id", DEFAULT_ROOM_ID) ?: DEFAULT_ROOM_ID
+        currentDeviceToken = prefs.getString("device_token", "") ?: ""
     }
 
     private fun initViews() {
@@ -285,6 +290,7 @@ class MainActivity : AppCompatActivity() {
         wsClient = WebSocketClientManager(
             serverWsUrl = serverWsUrl,
             studentId = currentStudentId,
+            deviceToken = currentDeviceToken,
             onFeedbackReceived = { feedback ->
                 tvCurrentFloor.text = "Piso ${feedback.floorNumber}"
                 tvActiveClue.text = feedback.activeClue
@@ -334,12 +340,27 @@ class MainActivity : AppCompatActivity() {
             ).apply { topMargin = 24 }
         }
 
+        val etToken = EditText(this).apply {
+            hint = "Token del dispositivo (lo entrega el docente al darlo de alta)"
+            setText(currentDeviceToken)
+            setSingleLine()
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = 24 }
+        }
+
         layout.addView(etStudent)
         layout.addView(etRoom)
+        layout.addView(etToken)
 
         AlertDialog.Builder(this)
             .setTitle("Perfil de Alumno / Dispositivo")
-            .setMessage("Personaliza tu usuario para conectar múltiples móviles a la vez sin interferencias:")
+            .setMessage(
+                "Personaliza tu usuario para conectar múltiples móviles a la vez sin " +
+                    "interferencias. Si el servidor exige registro, pega aquí el token que te " +
+                    "dieron al dar de alta este dispositivo."
+            )
             .setView(layout)
             .setPositiveButton("Guardar") { _, _ ->
                 val newStudent = etStudent.text.toString().trim()
@@ -360,9 +381,11 @@ class MainActivity : AppCompatActivity() {
                 if (newStudent.isNotEmpty() && newRoom.isNotEmpty()) {
                     currentStudentId = newStudent
                     currentTargetRoomId = newRoom
+                    currentDeviceToken = etToken.text.toString().trim()
                     prefs.edit()
                         .putString("student_id", currentStudentId)
                         .putString("target_room_id", currentTargetRoomId)
+                        .putString("device_token", currentDeviceToken)
                         .apply()
                     updateUserUI()
                     updateServerConnection()

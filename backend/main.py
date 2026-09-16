@@ -14,6 +14,7 @@ from .config import config
 from .domain.graph import create_default_school_graph
 from .repositories.radio_map_repo import InMemoryRadioMapRepository
 from .repositories.attendance_repo import InMemoryAttendanceRepository
+from .repositories.device_repo import DeviceRegistry
 from .services.floor_classifier import FloorClassifierService
 from .services.wknn_locator import WKNNPositioningService
 from .services.navigation_engine import NavigationEngine
@@ -25,6 +26,7 @@ from .api import (
     navigation_router,
     attendance_router,
     network_router,
+    devices_router,
     websocket_router
 )
 from .services.signal_filters import MultiBSSIDKalmanFilter, TrajectoryKinematicFilter2D
@@ -45,6 +47,7 @@ class ApplicationState:
         # 2. Repositorios de Persistencia
         self.radio_map_repo = InMemoryRadioMapRepository(config.server.radio_map_file)
         self.attendance_repo = InMemoryAttendanceRepository(config.server.attendance_log_file)
+        self.device_registry = DeviceRegistry(config.server.device_registry_file)
 
         # 3. Servicios del Negocio
         self.floor_classifier = FloorClassifierService(self.radio_map_repo)
@@ -77,6 +80,14 @@ async def lifespan(app: FastAPI):
         logger.info("   (define IPS_ADMIN_TOKEN para permitirlas desde la red)")
     origins = config.server.allowed_origins
     logger.info(f" CORS: {', '.join(origins) if origins else 'solo mismo origen'}")
+
+    registry = app_state.device_registry
+    activos = sum(1 for d in registry.list_devices() if d.is_active)
+    if registry.enforcement_enabled:
+        logger.info(f" Canal móvil: requiere token de dispositivo ({activos} activos)")
+    else:
+        logger.info(" Canal móvil: ABIERTO, cualquier identificador es aceptado")
+        logger.info("   (da de alta un dispositivo en POST /api/v1/devices/enroll para exigir token)")
     logger.info("=======================================================")
 
     # Un IPS sin radio-mapa no falla: devuelve piso 1 y una posición por defecto para todos,
@@ -129,6 +140,7 @@ app.include_router(calibration_router)
 app.include_router(navigation_router)
 app.include_router(attendance_router)
 app.include_router(network_router)
+app.include_router(devices_router)
 app.include_router(websocket_router)
 
 # Montar Frontend de Estaciones de Salón si existe el directorio
