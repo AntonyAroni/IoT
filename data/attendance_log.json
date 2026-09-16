@@ -4,32 +4,26 @@
     "student_name": "Antony Mendoza",
     "room_id": "S101",
     "status": "ABSENT",
-    "last_seen": 1789190766.9132612,
+    "last_seen": 0.0,
     "confirmed_at": null,
-<<<<<<< HEAD
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
-=======
-    "last_rssi": -95.0,
-    "samples_in_window": 0
->>>>>>> origin/main
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_02",
     "student_name": "Valeria Gómez",
     "room_id": "S102",
     "status": "ABSENT",
-    "last_seen": 1789190766.9143498,
+    "last_seen": 0.0,
     "confirmed_at": null,
-<<<<<<< HEAD
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
-=======
-    "last_rssi": -95.0,
-    "samples_in_window": 0
->>>>>>> origin/main
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_03",
@@ -40,7 +34,9 @@
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_04",
@@ -51,7 +47,9 @@
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_05",
@@ -62,7 +60,9 @@
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_06",
@@ -73,7 +73,9 @@
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_07",
@@ -84,23 +86,22 @@
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_08",
     "student_name": "Diego Ramos (Demo Player)",
     "room_id": "S302",
-<<<<<<< HEAD
     "status": "ABSENT",
     "last_seen": 0.0,
-=======
-    "status": "AT_DOOR",
-    "last_seen": 1789190766.9216187,
->>>>>>> origin/main
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_09",
@@ -111,7 +112,9 @@
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_10",
@@ -122,7 +125,9 @@
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_11",
@@ -133,7 +138,9 @@
     "confirmed_at": null,
     "last_rssi": null,
     "samples_in_window": 0,
-    "rssi_is_measured": false
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   },
   {
     "student_id": "EST_12",
@@ -143,21 +150,9 @@
     "last_seen": 0.0,
     "confirmed_at": null,
     "last_rssi": null,
-<<<<<<< HEAD
     "samples_in_window": 0,
-    "rssi_is_measured": false
-=======
-    "samples_in_window": 0
-  },
-  {
-    "student_id": "EST_99",
-    "student_name": "Estudiante Prueba Real",
-    "room_id": "S101",
-    "status": "ABSENT",
-    "last_seen": 0.0,
-    "confirmed_at": null,
-    "last_rssi": null,
-    "samples_in_window": 0
->>>>>>> origin/main
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
   }
 ]

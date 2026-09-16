@@ -51,8 +51,22 @@ class WKNNConfig:
     epsilon: float = 1e-6
     default_absent_rssi: float = -105.0  # RSSI asignado cuando un AP no es detectado
     metric: str = "euclidean"  # 'euclidean' o 'manhattan'
+    # Filtrado de Kalman sobre el RSSI, aplicado por sesión móvil en el manejador de WebSocket.
+    # El interruptor existía pero no se consultaba en ninguna parte: el filtro se aplicaba
+    # siempre. Ver `signal_filters.DEFAULT_PROCESS_NOISE` para la sintonización y su medición.
     enable_kalman_filter: bool = True
-    enable_adaptive_k: bool = True
+
+    # Selección adaptativa de k según la dispersión de los vecinos.
+    #
+    # Desactivada tras medirla. Con `k = 2`, `select_adaptive_k(min_k=2, max_k=k)` devuelve
+    # siempre 2 y la función queda inerte. Y si se le da margen real (max_k = 4), el error
+    # empeora: 2.22 m frente a 1.70 m con k fijo, y el percentil 90 pasa de 2.73 m a 3.49 m
+    # (LOOCV, 20 repeticiones, semilla 42). La heurística amplía k justo cuando los vecinos
+    # están dispersos, que es cuando incorporar puntos lejanos más distorsiona la estimación.
+    #
+    # Se conserva el interruptor y la implementación: con un radio-mapa de campo, donde la
+    # densidad de puntos es irregular, la conclusión podría invertirse.
+    enable_adaptive_k: bool = False
 
     # Ponderación por varianza al estilo Horus (Youssef & Agrawala, 2005): cada término de la
     # distancia se divide por la desviación estándar del BSSID medida en calibración, de modo

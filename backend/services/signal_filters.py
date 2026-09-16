@@ -12,12 +12,35 @@ from typing import Dict, List, Tuple, Optional
 from ..domain.building import Point2D
 from ..domain.fingerprint import RadioMapEntry
 
+# Ruido de proceso del filtro de Kalman sobre el RSSI.
+#
+# El valor original, 0.08, asumía que el RSSI de un AP apenas cambia entre lecturas. Eso es
+# cierto para un dispositivo quieto, pero falso para un alumno caminando: el filtro se resistía
+# al movimiento real y arrastraba la posición estimada. Medido sobre una trayectoria de 11 pasos
+# a paso peatonal, 30 repeticiones:
+#
+#     q      error medio (marcha)   peor caso
+#     0.08         1.46 m            3.31 m   <- valor original
+#     0.50         1.02 m            2.80 m
+#     2.00         0.78 m            2.72 m
+#     8.00         0.62 m            2.29 m   <- adoptado
+#    30.00         0.58 m            2.28 m
+#   sin Kalman     0.56 m            2.60 m
+#
+# Con q = 8 el filtro deja de estorbar al movimiento y conserva su ventaja real: acota el peor
+# caso (2.29 m frente a 2.60 m sin filtrar) a cambio de 0.06 m de error medio. Subir más q lo
+# acerca a no filtrar en absoluto.
+DEFAULT_PROCESS_NOISE = 8.0
+DEFAULT_MEASUREMENT_NOISE = 2.5
+
+
 class KalmanFilter1D:
     """
     Filtro de Kalman 1D discreto para una serie temporal de RSSI de un único BSSID.
     Modela el RSSI real como un estado estocástico atenuado por ruido gaussiano.
     """
-    def __init__(self, initial_value: float, process_noise: float = 0.08, measurement_noise: float = 2.5):
+    def __init__(self, initial_value: float, process_noise: float = DEFAULT_PROCESS_NOISE,
+                 measurement_noise: float = DEFAULT_MEASUREMENT_NOISE):
         self.x = initial_value         # Estimación del estado (RSSI filtrado)
         self.p = 1.0                   # Varianza del error de estimación inicial
         self.q = process_noise         # Ruido del proceso (dinámica peatonal)
@@ -41,7 +64,8 @@ class MultiBSSIDKalmanFilter:
     Banco de Filtros de Kalman independientes para cada BSSID detectado por el dispositivo.
     Conserva la historia temporal de cada punto de acceso.
     """
-    def __init__(self, process_noise: float = 0.08, measurement_noise: float = 2.5, ttl_seconds: float = 10.0):
+    def __init__(self, process_noise: float = DEFAULT_PROCESS_NOISE,
+                 measurement_noise: float = DEFAULT_MEASUREMENT_NOISE, ttl_seconds: float = 10.0):
         self.filters: Dict[str, KalmanFilter1D] = {}
         self.last_updated: Dict[str, float] = {}
         self.q = process_noise

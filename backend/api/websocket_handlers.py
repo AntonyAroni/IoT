@@ -10,6 +10,7 @@ import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from ..domain.fingerprint import FingerprintVector
 from ..domain.building import Point2D
+from ..config import config
 
 logger = logging.getLogger("ips.websockets")
 router = APIRouter(tags=["WebSockets"])
@@ -98,6 +99,15 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
     from ..services.signal_filters import MultiBSSIDKalmanFilter, TrajectoryKinematicFilter2D
     from ..domain.attendance import Student
 
+    # La validación va ANTES de reservar nada: los filtros se guardan en diccionarios del
+    # estado global indexados por `student_id`, y la rama de rechazo retorna sin pasar por la
+    # limpieza del `finally`. Reservarlos primero dejaba dos objetos colgados por cada intento
+    # rechazado, con claves que elige quien se conecta, de modo que repetir conexiones con
+    # identificadores aleatorios hacía crecer la memoria sin límite.
+    if not _is_valid_identifier(student_id):
+        await _reject_identifier(websocket, "student_id", student_id)
+        return
+
     if student_id not in app_state.mobile_kalman_filters:
         app_state.mobile_kalman_filters[student_id] = MultiBSSIDKalmanFilter()
     kalman_filter = app_state.mobile_kalman_filters[student_id]
@@ -105,10 +115,6 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
     if student_id not in app_state.mobile_trajectory_filters:
         app_state.mobile_trajectory_filters[student_id] = TrajectoryKinematicFilter2D()
     trajectory_filter = app_state.mobile_trajectory_filters[student_id]
-
-    if not _is_valid_identifier(student_id):
-        await _reject_identifier(websocket, "student_id", student_id)
-        return
 
     await manager.connect_mobile(websocket, student_id)
 
@@ -134,9 +140,15 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
                 student_obj = Student(id=student_id, name=student_name, enrolled_room=target_room_id)
                 attendance_repo.register_student(student_obj)
 
-            # 0. Filtrado de Kalman 1D por BSSID para atenuar fluctuaciones por multi-trayecto
+            # 0. Filtrado de Kalman 1D por BSSID para atenuar fluctuaciones por multi-trayecto.
+            # `enable_kalman_filter` estaba declarado en la configuración pero no se consultaba
+            # en ninguna parte, de modo que el filtro se aplicaba siempre y el interruptor no
+            # hacía nada.
             raw_readings = {k.lower(): float(v) for k, v in readings.items()}
-            filtered_readings = kalman_filter.filter_readings(raw_readings, timestamp)
+            if config.wknn.enable_kalman_filter:
+                filtered_readings = kalman_filter.filter_readings(raw_readings, timestamp)
+            else:
+                filtered_readings = raw_readings
 
             vector = FingerprintVector(
                 timestamp=timestamp,
