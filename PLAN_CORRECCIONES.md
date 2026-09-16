@@ -16,10 +16,11 @@
 **Cerrado:** P0-1, P0-2, P0-3, y todo P1, P2 y P3. El sistema hace lo que su documentación dice,
 las métricas son reproducibles y los bugs visibles al usuario están corregidos.
 
-**Parcial:** P0-4 — hechos los endpoints destructivos y el CORS; la credencial por dispositivo
-queda pendiente por decisión del usuario (todavía no hay usuarios registrados).
+**Casi:** P0-4 — hechos los endpoints destructivos, el CORS, la credencial por dispositivo y la
+derivación de identidad desde el token. Solo queda TLS, aparcado por decisión del usuario hasta
+que exista túnel o certificado.
 
-**Suite de pruebas:** 11 → **57** pruebas, todas pasando, sin tocar `data/` (incluye las 7 que
+**Suite de pruebas:** 11 → **93** pruebas, todas pasando, sin tocar `data/` (incluye las 7 que
 aporta `origin/main`; ver la sección de integración al final).
 
 > **Nota sobre las cifras de este documento.** Los bloques de resultados de cada tarea recogen lo
@@ -208,9 +209,26 @@ asistencia, esto anula el propósito del proyecto.
 
 **Tareas**
 
-- [ ] Emitir un token por alumno (JWT firmado o token opaco pre-provisionado) y validarlo en el
-      handshake del WebSocket antes de `connect_mobile()`.
-- [ ] Derivar el `student_id` **del token**, nunca de la ruta.
+- [x] Emitir un token y validarlo en el handshake. → Credencial **por dispositivo**, no por
+      alumno: `backend/domain/device.py`, `repositories/device_repo.py` y
+      `api/routes_devices.py`. El alta va protegida con `require_admin` y devuelve el token una
+      sola vez; el registro guarda únicamente su huella SHA-256. Se descartó el JWT con padrón de
+      usuarios por desproporcionado para la etapa actual del proyecto, en la que se registran
+      dispositivos y se hacen pruebas funcionales.
+- [x] Derivar el `student_id` del token, nunca de la ruta. → Verificado en aislamiento: un
+      dispositivo con credencial de `EST_08` que declara ser `EST_01` queda registrado como
+      `EST_08`, `EST_01` no recibe actividad, y la discrepancia se anota en el log.
+
+      **Migración gradual.** Ocho consumidores se conectan sin credencial (la demostración, el
+      sensor virtual, la suite sintética). Mientras el registro esté vacío se conserva el
+      comportamiento actual y el arranque lo advierte; al dar de alta el primer dispositivo la
+      exigencia se activa y la respuesta del alta lo dice.
+
+      **Hallazgo durante la implementación.** Definir la exigencia como "hay algún dispositivo
+      *activo*" hacía que revocar el último móvil devolviera el canal a modo abierto: quien
+      revocara un dispositivo comprometido estaría abriendo la puerta a cualquiera, justo en el
+      peor momento. Ahora depende de que se haya dado de alta alguno, no de que quede alguno
+      activo. Lo detectó una prueba que se quedó colgada.
 - [x] Proteger los endpoints mutantes. → `backend/api/security.py` con la dependencia
       `require_admin`, aplicada a los tres. Dos modos: con `IPS_ADMIN_TOKEN` exigen la cabecera
       `X-Admin-Token`; sin él, solo se aceptan desde la máquina local. El segundo es un valor por
@@ -234,8 +252,22 @@ asistencia, esto anula el propósito del proyecto.
       ```
 
       El tablero no necesita CORS en absoluto: es same-origin y no usa credenciales.
-- [ ] Servir por TLS y cambiar a `wss://`; quitar `usesCleartextTraffic="true"` del
-      `AndroidManifest.xml`.
+- [ ] **APARCADO por decisión del usuario (2026-09-15).** Servir por TLS y cambiar a `wss://`;
+      quitar `usesCleartextTraffic="true"` del `AndroidManifest.xml`.
+
+      No se aparca por dificultad técnica —el cliente ya construye la URL desde el esquema— sino
+      porque es la única tarea que no puede validarse sin el despliegue real:
+
+      - Poner `usesCleartextTraffic="false"` **corta el montaje actual** sobre
+        `http://192.168.x.x` en el momento de desplegarlo.
+      - Un certificado autofirmado obliga a configurar la confianza en cada móvil, o Android
+        rechaza la conexión.
+      - La vía limpia es el túnel que ya se usa (`cloudflared`), que aporta TLS real, pero
+        entonces la IP local deja de ser el camino de acceso y cambia el flujo de alta.
+
+      Retomarlo cuando exista túnel o certificado, y validarlo con un móvil real conectándose.
+      Hasta entonces, la credencial de dispositivo viaja en claro por la red local: protege
+      frente a la suplantación por identificador, no frente a quien capture el tráfico.
 
 **Criterio de aceptación:** una conexión a `/ws/mobile/EST_08` sin token es rechazada con 4401.
 
