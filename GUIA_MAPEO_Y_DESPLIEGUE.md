@@ -87,19 +87,27 @@ El mapeo en interiores (fase de calibración offline) consiste en construir el *
 
 1. Define el punto origen $(0.00\text{ m}, 0.00\text{ m})$ en una esquina clara del piso (ejemplo: esquina inferior izquierda del pasillo).
 2. Determina el eje $X$ (horizontal a lo largo del pasillo) y eje $Y$ (profundidad hacia adentro del aula).
-3. **Medición métrica de aulas contiguas:**
-   - Si las aulas están pegadas una al lado de la otra separadas por un muro de concreto:
-     - **Aula 101:** Puerta en $(x = 4.00, y = 5.00)$, Centro en $(x = 4.00, y = 2.00)$.
-     - **Aula 102:** Puerta en $(x = 10.00, y = 5.00)$, Centro en $(x = 10.00, y = 2.00)$.
-     - **Aula 103:** Puerta en $(x = 16.00, y = 5.00)$, Centro en $(x = 16.00, y = 2.00)$.
-   - En el pasillo, define puntos de referencia cada **1.5 a 2.0 metros**:
-     - `RP_P1_Hall_1`: $(x = 2.00, y = 5.00)$
-     - `RP_P1_Hall_2`: $(x = 4.00, y = 5.00)$ (Frente a S101)
-     - `RP_P1_Hall_3`: $(x = 7.00, y = 5.00)$ (Entre S101 y S102)
-     - `RP_P1_Hall_4`: $(x = 10.00, y = 5.00)$ (Frente a S102)
-     - `RP_P1_Hall_5`: $(x = 13.00, y = 5.00)$ (Entre S102 y S103)
-     - `RP_P1_Hall_6`: $(x = 16.00, y = 5.00)$ (Frente a S103)
-     - `RP_P1_Hall_7`: $(x = 18.00, y = 5.00)$ (Acceso a Escaleras)
+3. **Obtén la cuadrícula ejecutando el comando**, en lugar de copiarla de aquí:
+
+```bash
+PYTHONPATH=. python calibration_tools/print_mapping_grid.py --floor 1
+```
+
+Imprime el identificador y las coordenadas de cada punto a levantar, **derivados del modelo del
+edificio que usan la navegación y el criterio de asistencia**. Con `--csv` genera una tabla para
+imprimir y llevar al campo.
+
+> [!WARNING]
+> **No transcribas coordenadas a mano.** Una versión anterior de esta guía situaba las aulas del
+> piso 1 en $x = 4, 10, 16$ y llamaba "puerta" a $y = 5.00$, mientras el modelo del edificio las
+> tiene en $x = 2, 10, 18$ con la puerta en $y = 4.00$ y el pasillo en $y = 5.00$. Mapear con esas
+> cifras deja cada huella desplazada hasta 2 m respecto al grafo: el alumno aparece fuera del aula
+> aunque esté sentado en ella, y el criterio de asistencia —"a 4 m o menos del centro"— gasta la
+> mitad de su margen en un error que no existe.
+
+**Si el edificio real no encaja con la cuadrícula**, ajusta primero `create_default_school_graph()`
+en `backend/domain/graph.py` y vuelve a ejecutar el comando. Mapear contra coordenadas que el
+sistema no comparte invalida las huellas: no hay forma de arreglarlo después salvo volver a medir.
 
 ### B. Ajuste Clave en los Teléfonos Android (¡Imprescindible!)
 
@@ -116,11 +124,17 @@ El mapeo en interiores (fase de calibración offline) consiste en construir el *
 1. Abre la APK en el celular y asegúrate de que esté conectada al servidor (indicador verde `● Conectado`).
 2. Toca el botón **"Modo Calibrador (Offline)"**.
 3. Párate exactamente en el punto físico a calibrar (ej. puerta de S101).
-4. Configura en pantalla:
+4. Configura en pantalla, copiando la fila correspondiente de la cuadrícula que imprimió el
+   comando del paso A:
    - **ID del Punto:** `RP_S101_Door`
    - **Piso:** Piso 1
-   - **Coord X (m):** `4.00`
-   - **Coord Y (m):** `5.00`
+   - **Coord X (m):** `2.00`
+   - **Coord Y (m):** `4.00`
+
+   > Los campos de coordenadas van **vacíos** a propósito y la app rechaza el envío si faltan.
+   > Antes venían fijados en el código a $(10.00, 2.00)$, y por eso las ocho capturas de campo
+   > que conserva `data/field_captures/` están todas en ese mismo punto y no sirven como
+   > referencia. Comprueba cada valor antes de enviar.
 5. **Captura de Muestras (Criterio Científico de Atenuación Corporal):**
    - El cuerpo de una persona atenúa de $3\text{ a }6\text{ dBm}$ la señal Wi-Fi a 2.4/5 GHz si se interpone entre el router y el teléfono.
    - Sostén el celular a la altura del pecho.

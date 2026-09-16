@@ -6,6 +6,16 @@
 
 Este documento no sustituye a la medición: describe cómo hacerla para que los datos sirvan.
 
+> **Relación con `GUIA_MAPEO_Y_DESPLIEGUE.md`.** Esa guía cubre el procedimiento operativo paso a
+> paso: desactivar el *throttling* de escaneo en Android, manejar la app en modo calibrador y
+> desplegar el servidor con túnel. Este documento cubre lo complementario: los criterios que
+> deciden si los datos resultantes valen para algo. Léelos juntos; la cuadrícula de puntos sale
+> de un comando, no de ninguno de los dos:
+>
+> ```bash
+> PYTHONPATH=. python calibration_tools/print_mapping_grid.py --floor 1
+> ```
+
 ---
 
 ## 0. Por qué existe este protocolo
