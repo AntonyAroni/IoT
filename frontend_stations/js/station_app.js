@@ -56,6 +56,32 @@ class StationDashboardApp {
     document.getElementById('btnSimDoor').addEventListener('click', () => this.simulateEvent('AT_DOOR', -53.0, 2.8));
     document.getElementById('btnSimConfirm').addEventListener('click', () => this.simulateEvent('PRESENT_CONFIRMED', -46.0, 1.2));
     document.getElementById('btnResetRoom').addEventListener('click', () => this.resetRoomAttendance());
+
+    // Modal de Conexión Móvil
+    const modal = document.getElementById('modalConnect');
+    const btnConnect = document.getElementById('btnConnectMobile');
+    const btnClose = document.getElementById('btnCloseModal');
+    const btnOk = document.getElementById('btnModalOk');
+
+    if (btnConnect) {
+      btnConnect.addEventListener('click', async () => {
+        modal.style.display = 'flex';
+        try {
+          const res = await fetch('/api/v1/network/info');
+          if (res.ok) {
+            const net = await res.json();
+            document.getElementById('detectedServerIp').textContent = `${net.primary_ip}:${net.server_port}`;
+            const ipItems = net.available_ips.map(item => `<span>${item.type}: <strong>${item.ip}</strong></span>`).join(' | ');
+            document.getElementById('detectedAllIps').innerHTML = `IPs detectadas: ${ipItems}`;
+          }
+        } catch (e) {
+          document.getElementById('detectedServerIp').textContent = window.location.host;
+        }
+      });
+    }
+
+    if (btnClose) btnClose.addEventListener('click', () => { modal.style.display = 'none'; });
+    if (btnOk) btnOk.addEventListener('click', () => { modal.style.display = 'none'; });
   }
 
   _initDashboard() {
@@ -149,7 +175,10 @@ class StationDashboardApp {
     }
 
     // Telemetría en el pie del radar
-    this.lastStudentTelemetry.textContent = `Último sensor: ${data.student_name} | RSSI: ${data.rssi} dBm | Dist: ${data.distance_to_classroom} m | Estado: ${data.status}`;
+    const distFmt = (data.distance_to_classroom !== undefined && data.distance_to_classroom !== null) 
+      ? Number(data.distance_to_classroom).toFixed(2) 
+      : '--';
+    this.lastStudentTelemetry.textContent = `Último sensor: ${data.student_name} | RSSI: ${data.rssi} dBm | Dist: ${distFmt} m | Estado: ${data.status}`;
 
     // Log de auditoría
     if (data.audit_message) {

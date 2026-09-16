@@ -56,6 +56,32 @@ class TestWebSocketIntegration(IsolatedAppStateMixin, unittest.TestCase):
             self.assertEqual(laptop_event["student_id"], "EST_08")
             self.assertIn(laptop_event["status"], ["APPROACHING", "AT_DOOR", "PRESENT_CONFIRMED"])
 
+    def test_concurrent_multi_student_websocket(self):
+        """
+        Verifica que múltiples dispositivos móviles puedan conectarse en simultáneo
+        con distintos student_id sin bloquearse ni sobreescribir sus estados.
+        """
+        with self.client.websocket_connect("/ws/mobile/EST_01") as ws1:
+            with self.client.websocket_connect("/ws/mobile/EST_02") as ws2:
+                # Enviar escaneo desde EST_01 hacia S101
+                ws1.send_json({
+                    "timestamp": 1000.0,
+                    "target_room_id": "S101",
+                    "readings": {"ap_test_s302": -80.0}
+                })
+                resp1 = ws1.receive_json()
+                self.assertEqual(resp1["student_id"], "EST_01")
+
+                # Enviar escaneo desde EST_02 hacia S102
+                ws2.send_json({
+                    "timestamp": 1001.0,
+                    "target_room_id": "S102",
+                    "readings": {"ap_test_s302": -75.0}
+                })
+                resp2 = ws2.receive_json()
+                self.assertEqual(resp2["student_id"], "EST_02")
+
+
 class TestIdentifierValidation(IsolatedAppStateMixin, unittest.TestCase):
     """
     Los identificadores llegan como texto libre en la ruta del WebSocket y acaban en el tablero

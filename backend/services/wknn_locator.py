@@ -9,6 +9,7 @@ from ..domain.building import Point2D
 from ..domain.fingerprint import FingerprintVector, RadioMapEntry
 from ..repositories.base import IRadioMapRepository
 from ..config import WKNNConfig
+from .signal_filters import select_adaptive_k
 
 class WKNNPositioningService:
     def __init__(self, radio_map_repo: IRadioMapRepository, config: Optional[WKNNConfig] = None):
@@ -66,8 +67,13 @@ class WKNNPositioningService:
         # Ordenar por menor distancia de señal (mayor similitud)
         neighbor_distances.sort(key=lambda item: item[1])
 
-        # Tomar los k vecinos más cercanos
-        k_val = min(self.config.k, len(neighbor_distances))
+        # Tomar los k vecinos más cercanos (adaptativo o fijo)
+        if self.config.enable_adaptive_k:
+            target_k = select_adaptive_k(neighbor_distances, min_k=2, max_k=self.config.k)
+        else:
+            target_k = self.config.k
+
+        k_val = min(target_k, len(neighbor_distances))
         top_k = neighbor_distances[:k_val]
 
         # Ponderación inversa a la distancia: w_i = 1 / (d_i + epsilon)
@@ -83,4 +89,4 @@ class WKNNPositioningService:
         est_x = sum(w * entry.reference_point.position.x for (entry, _), w in zip(top_k, weights)) / total_weight
         est_y = sum(w * entry.reference_point.position.y for (entry, _), w in zip(top_k, weights)) / total_weight
 
-        return Point2D(round(est_x, 2), round(est_y, 2)), top_k
+        return Point2D(round(est_x, 3), round(est_y, 3)), top_k

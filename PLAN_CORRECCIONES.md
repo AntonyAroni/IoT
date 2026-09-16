@@ -19,7 +19,8 @@ las métricas son reproducibles y los bugs visibles al usuario están corregidos
 **Parcial:** P0-4 — hechos los endpoints destructivos y el CORS; la credencial por dispositivo
 queda pendiente por decisión del usuario (todavía no hay usuarios registrados).
 
-**Suite de pruebas:** 11 → **50** pruebas, todas pasando, sin tocar `data/`.
+**Suite de pruebas:** 11 → **57** pruebas, todas pasando, sin tocar `data/` (incluye las 7 que
+aporta `origin/main`; ver la sección de integración al final).
 
 > **Nota sobre las cifras de este documento.** Los bloques de resultados de cada tarea recogen lo
 > medido **en el momento de cerrarla**. P2-4 descubrió después que el generador declaraba
@@ -598,3 +599,52 @@ synth = {f"ap_p{f}_{k}" for f in range(1, 5) for k in ("west", "east", "room02")
 print(len(d), "entradas")
 print([e["id"] for e in d if not set(e["rssi_means"]) <= synth] or "limpio")
 ```
+
+---
+
+## Integración con `origin/main` (commit 62fd94b, 2026-09-12)
+
+Mientras esta rama avanzaba, el remoto incorporó filtros Kalman, WKNN adaptativo, soporte
+multidispositivo, endpoints de red y descarga de APK. El commit tocaba 17 de los ficheros
+modificados aquí y produjo **9 conflictos**.
+
+### Criterio aplicado
+
+1. **Lo del remoto gana en funcionalidad nueva.** Kalman 1D, cinemático 2D, k adaptativo,
+   `/api/v1/network/info`, `/apk`, diálogo de perfil de alumno, URLs de túnel. Son capacidades
+   que esta rama no tenía y no compiten con nada de lo hecho aquí.
+2. **Esta rama gana en correcciones con prueba detrás.** Cada una tiene un test que la respalda;
+   descartarla es reintroducir el fallo que el test detecta.
+3. **Los ficheros de datos no se mergean, se regeneran.** El dato medido es irrepetible; el
+   sintético se regenera con un comando.
+4. **Los tests se suman.** 50 + 7 = **57**, todas pasando.
+
+### Resolución conflicto a conflicto
+
+| Fichero | Resolución |
+| :--- | :--- |
+| `attendance_repo.py` | Ambos lados añadían métodos distintos; se conservan los dos (`load_from_file`/`flush` y `get_all_students`) |
+| `navigation_engine.py` | Su `round(progress, 2)` reventaría con nuestro `progress = None`; se mantiene el nuestro y se adopta su precisión de 2 decimales en el cálculo |
+| `test_websocket_integration.py` | Unión: su prueba de concurrencia multidispositivo más nuestra clase de validación de identificadores |
+| `CalibratorManager.kt` | Su precisión de 2 decimales más nuestra tasa de detección y la imputación del valor suelo |
+| `WebSocketClientManager.kt` | Reescrito combinando: su callback de estado `(Boolean, String?)`, saneamiento de URL y `student_id` en el payload, con nuestro retroceso exponencial, manejo del cierre 4400 y `room_ap_rssi` |
+| `MainActivity.kt` | Se adopta su nomenclatura (`currentStudentId`) y su separación en dos diálogos, que además soporta URLs de túnel; se le inyecta nuestra validación de identificadores |
+| `activity_main.xml` | Su layout, **quitando el prefill** `android:text="10.00"` / `"2.00"` de las coordenadas (ver abajo) y admitiendo valores negativos |
+| `data/radio_map.json` | Regenerado sintético de 40 RPs; sus capturas reales se conservan en `data/field_captures/` |
+| `data/attendance_log.json` | Regenerado limpio |
+
+### Hallazgos de la integración
+
+- **La campaña de campo del remoto volvió a chocar con el bug de las coordenadas.** Sus 5
+  capturas reales (`Aula_302`, `PUERTA_302`, `RP_S201_center`, `RP_S201_puerta`,
+  `RP_S201_pasillo`) están **todas en (10.0, 2.0)**, igual que las 3 anteriores: se tomaron antes
+  de que el calibrador exigiera la posición. Se conservan como evidencia, seudonimizadas, pero no
+  son utilizables como puntos de referencia.
+- **El prefill de coordenadas del layout reproduce ese mismo bug.** Preseleccionar `10.00` y
+  `2.00` hace que un usuario distraído los deje tal cual. Se retira: los campos van vacíos y el
+  envío se rechaza si faltan.
+- **`RP_TEST_S302` seguía en el `radio_map.json` del remoto.** Es el artefacto que escribe el test
+  de integración, que allí sigue usando el repositorio de producción. El `IsolatedAppStateMixin`
+  de esta rama lo impide, y el test de integridad lo detectaría.
+- **El `radio_map.json` del remoto tenía 6 entradas y solo cubría los pisos 2 y 3**, con lo que la
+  demostración multi-piso y las métricas publicadas no se sostenían contra él.

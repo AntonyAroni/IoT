@@ -66,7 +66,7 @@ class VirtualMobileSensor:
                 readings[ap.bssid] = val
         return readings
 
-    async def run_scenario(self, ws_url: str = "ws://localhost:8000/ws/mobile/EST_08"):
+    async def run_scenario(self, ws_url: str = None):
         """
         Ejecuta el escenario canónico de la demo:
         1. Alumno inicia en Piso 1 (Pasillo Oeste).
@@ -76,6 +76,8 @@ class VirtualMobileSensor:
         5. Permanece en el aula para confirmar la asistencia.
         """
         import websockets
+        if ws_url is None:
+            ws_url = f"ws://localhost:8000/ws/mobile/{self.student_id}"
 
         trajectory = [
             # Piso 1

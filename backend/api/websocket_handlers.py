@@ -93,6 +93,18 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
     nav_engine = app_state.navigation_engine
     tracker = app_state.attendance_tracker
     graph = app_state.graph
+    attendance_repo = app_state.attendance_repo
+
+    from ..services.signal_filters import MultiBSSIDKalmanFilter, TrajectoryKinematicFilter2D
+    from ..domain.attendance import Student
+
+    if student_id not in app_state.mobile_kalman_filters:
+        app_state.mobile_kalman_filters[student_id] = MultiBSSIDKalmanFilter()
+    kalman_filter = app_state.mobile_kalman_filters[student_id]
+
+    if student_id not in app_state.mobile_trajectory_filters:
+        app_state.mobile_trajectory_filters[student_id] = TrajectoryKinematicFilter2D()
+    trajectory_filter = app_state.mobile_trajectory_filters[student_id]
 
     if not _is_valid_identifier(student_id):
         await _reject_identifier(websocket, "student_id", student_id)
@@ -112,20 +124,34 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
 
             # Extraer vector de lecturas Wi-Fi
             readings = payload.get("readings", {})
-            target_room_id = payload.get("target_room_id", "S302")  # Salón objetivo por defecto en demo
+            target_room_id = payload.get("target_room_id", "S302")
             timestamp = payload.get("timestamp", time.time())
+
+            # Validación o autoregistro de usuario para permitir múltiples dispositivos
+            student_obj = attendance_repo.get_student(student_id)
+            if not student_obj:
+                student_name = payload.get("student_name", f"Alumno {student_id}")
+                student_obj = Student(id=student_id, name=student_name, enrolled_room=target_room_id)
+                attendance_repo.register_student(student_obj)
+
+            # 0. Filtrado de Kalman 1D por BSSID para atenuar fluctuaciones por multi-trayecto
+            raw_readings = {k.lower(): float(v) for k, v in readings.items()}
+            filtered_readings = kalman_filter.filter_readings(raw_readings, timestamp)
 
             vector = FingerprintVector(
                 timestamp=timestamp,
                 device_id=student_id,
-                readings={k.lower(): float(v) for k, v in readings.items()}
+                readings=filtered_readings
             )
 
             # 1. Clasificación Jerárquica de Piso
             detected_floor, floor_confidence = floor_clf.classify_floor(vector)
 
             # 2. Posicionamiento 2D mediante WKNN
-            est_pos, neighbors = wknn.estimate_position(detected_floor, vector)
+            raw_est_pos, neighbors = wknn.estimate_position(detected_floor, vector)
+
+            # 2.1 Suavizado Cinemático de Trayectoria (Anti-Teletransportación entre aulas contiguas)
+            est_pos = trajectory_filter.filter_position(raw_est_pos, timestamp)
 
             # 3. Motor de Navegación y Pistas
             target_node = graph.get_node(target_room_id)
@@ -162,10 +188,11 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
                 strongest_rssi_to_room_ap=room_ap_rssi
             )
 
-            # 5. Respuesta en tiempo real hacia el Móvil
+            # 5. Respuesta en tiempo real hacia el Móvil con alta resolución métrica
             mobile_feedback = {
                 "event": "location_update",
                 "timestamp": timestamp,
+                "student_id": student_id,
                 "floor_number": detected_floor,
                 "floor_confidence": floor_confidence,
                 "position": {"x": est_pos.x, "y": est_pos.y},
@@ -178,6 +205,7 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
             await websocket.send_text(json.dumps(mobile_feedback))
 
             # 6. Notificación reactiva a la Laptop del Salón si hubo cambio de estado o proximidad
+            dist_to_room = round(est_pos.distance_to(target_center), 2) if detected_floor == target_floor else 99.0
             laptop_event = {
                 "event": "student_proximity",
                 "timestamp": timestamp,
@@ -186,7 +214,7 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
                 "status": record.status.value,
                 "floor_number": detected_floor,
                 "position": {"x": est_pos.x, "y": est_pos.y},
-                "distance_to_classroom": round(est_pos.distance_to(target_center), 2) if detected_floor == target_floor else 99.0,
+                "distance_to_classroom": dist_to_room,
                 "rssi": record.last_rssi,
                 "rssi_is_measured": record.rssi_is_measured,
                 "samples_in_window": record.samples_in_window,
@@ -199,6 +227,7 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
             await manager.broadcast_admin({
                 "type": "telemetry",
                 "student_id": student_id,
+                "student_name": record.student_name,
                 "floor": detected_floor,
                 "pos": {"x": est_pos.x, "y": est_pos.y},
                 "status": record.status.value,
@@ -207,9 +236,15 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
 
     except WebSocketDisconnect:
         manager.disconnect_mobile(websocket, student_id)
+        if student_id not in manager._mobile_clients:
+            app_state.mobile_kalman_filters.pop(student_id, None)
+            app_state.mobile_trajectory_filters.pop(student_id, None)
     except Exception as e:
         logger.error(f"Error en websocket móvil {student_id}: {e}")
         manager.disconnect_mobile(websocket, student_id)
+        if student_id not in manager._mobile_clients:
+            app_state.mobile_kalman_filters.pop(student_id, None)
+            app_state.mobile_trajectory_filters.pop(student_id, None)
 
 @router.websocket("/ws/admin")
 async def ws_admin_telemetry(websocket: WebSocket):

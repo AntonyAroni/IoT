@@ -20,12 +20,15 @@ data class MobileNavigationFeedback(
 /**
  * Cliente WebSocket Android con OkHttp.
  * Envía vectores Wi-Fi en vivo al backend y recibe pistas de navegación en tiempo real.
+ *
+ * `onStatusChanged` recibe el estado de conexión y, cuando se pierde, el motivo, para que la
+ * interfaz pueda mostrar algo más útil que "desconectado".
  */
 class WebSocketClientManager(
     private val serverWsUrl: String,
     private val studentId: String,
     private val onFeedbackReceived: (MobileNavigationFeedback) -> Unit,
-    private val onStatusChanged: (Boolean) -> Unit
+    private val onStatusChanged: (Boolean, String?) -> Unit
 ) {
     private var webSocket: WebSocket? = null
     private val client = OkHttpClient.Builder()
@@ -44,78 +47,82 @@ class WebSocketClientManager(
 
     fun connect() {
         isClosedByUser = false
-        val fullUrl = "$serverWsUrl/ws/mobile/$studentId"
-        val request = Request.Builder().url(fullUrl).build()
+        val cleanBase = serverWsUrl.trim().removeSuffix("/")
+        val fullUrl = "$cleanBase/ws/mobile/$studentId"
+        Log.i("WSClient", "Iniciando conexión WebSocket a: $fullUrl")
 
         // Descartar cualquier socket previo antes de abrir uno nuevo.
         webSocket?.cancel()
 
-        webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(ws: WebSocket, response: Response) {
-                isConnected = true
-                reconnectAttempts = 0
-                handler.post { onStatusChanged(true) }
-                Log.i("WSClient", "Conectado al Cerebro IPS.")
-            }
+        try {
+            val request = Request.Builder().url(fullUrl).build()
 
-            override fun onMessage(ws: WebSocket, text: String) {
-                try {
-                    val json = JSONObject(text)
-                    if (json.optString("event") == "location_update") {
-                        val feedback = MobileNavigationFeedback(
-                            floorNumber = json.optInt("floor_number", 1),
-                            floorConfidence = json.optDouble("floor_confidence", 1.0),
-                            activeClue = json.optString("active_clue", "Sigue avanzando..."),
-                            progressPercentage = json.optDouble("progress_percentage", 0.0),
-                            distanceMeters = json.optDouble("distance_meters", 0.0),
-                            hasArrived = json.optBoolean("has_arrived", false),
-                            attendanceStatus = json.optString("attendance_status", "ABSENT")
-                        )
-                        handler.post { onFeedbackReceived(feedback) }
+            webSocket = client.newWebSocket(request, object : WebSocketListener() {
+                override fun onOpen(ws: WebSocket, response: Response) {
+                    isConnected = true
+                    reconnectAttempts = 0
+                    handler.post { onStatusChanged(true, null) }
+                    Log.i("WSClient", "Conectado al Cerebro IPS en: $fullUrl")
+                }
+
+                override fun onMessage(ws: WebSocket, text: String) {
+                    try {
+                        val json = JSONObject(text)
+                        if (json.optString("event") == "location_update") {
+                            val feedback = MobileNavigationFeedback(
+                                floorNumber = json.optInt("floor_number", 1),
+                                floorConfidence = json.optDouble("floor_confidence", 1.0),
+                                activeClue = json.optString("active_clue", "Sigue avanzando..."),
+                                progressPercentage = json.optDouble("progress_percentage", 0.0),
+                                distanceMeters = json.optDouble("distance_meters", 0.0),
+                                hasArrived = json.optBoolean("has_arrived", false),
+                                attendanceStatus = json.optString("attendance_status", "ABSENT")
+                            )
+                            handler.post { onFeedbackReceived(feedback) }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("WSClient", "Error parseando feedback: ${e.message}")
                     }
-                } catch (e: Exception) {
-                    Log.e("WSClient", "Error parseando feedback: ${e.message}")
-                }
-            }
-
-            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
-                isConnected = false
-                handler.post { onStatusChanged(false) }
-
-                // Un 403 en el handshake también indica rechazo del servidor, no un fallo de red.
-                if (response?.code == HTTP_FORBIDDEN) {
-                    reportRejectedIdentifier("el servidor rechazó el handshake (HTTP 403)")
-                    return
                 }
 
-                scheduleReconnect(t.message)
-            }
+                override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+                    isConnected = false
+                    val errorMsg = t.localizedMessage ?: t.message
+                        ?: (if (response != null) "HTTP ${response.code}" else "Error de red")
+                    handler.post { onStatusChanged(false, errorMsg) }
 
-            override fun onClosing(ws: WebSocket, code: Int, reason: String) {
-                // El servidor cierra con 4400 cuando el identificador no cumple su formato.
-                // Reintentar con el mismo valor no puede funcionar nunca.
-                if (code == WS_CLOSE_INVALID_IDENTIFIER) {
-                    isClosedByUser = true   // inhibe la reconexión automática
-                    reportRejectedIdentifier(reason)
+                    // Un 403 en el handshake indica rechazo del servidor, no un fallo de red.
+                    if (response?.code == HTTP_FORBIDDEN) {
+                        reportRejectedIdentifier("el servidor rechazó el handshake (HTTP 403)")
+                        return
+                    }
+
+                    Log.w("WSClient", "Fallo en conexión WS a $fullUrl: $errorMsg")
+                    scheduleReconnect(errorMsg)
                 }
-            }
 
-            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
-                isConnected = false
-                handler.post { onStatusChanged(false) }
-                if (code == WS_CLOSE_INVALID_IDENTIFIER) return
-                scheduleReconnect("cierre remoto ($code)")
-            }
-        })
-    }
+                override fun onClosing(ws: WebSocket, code: Int, reason: String) {
+                    // El servidor cierra con 4400 cuando el identificador no cumple su formato.
+                    // Reintentar con el mismo valor no puede funcionar nunca.
+                    if (code == WS_CLOSE_INVALID_IDENTIFIER) {
+                        isClosedByUser = true   // inhibe la reconexión automática
+                        reportRejectedIdentifier(reason)
+                    }
+                }
 
-    private fun reportRejectedIdentifier(reason: String) {
-        Log.e(
-            "WSClient",
-            "Identificador '$studentId' rechazado por el servidor: $reason. " +
-                "Revísalo en la configuración; debe cumplir [A-Za-z0-9_-]{1,32}."
-        )
-        handler.post { onStatusChanged(false) }
+                override fun onClosed(ws: WebSocket, code: Int, reason: String) {
+                    isConnected = false
+                    val motivo = if (reason.isNotEmpty()) reason else "Desconectado ($code)"
+                    handler.post { onStatusChanged(false, motivo) }
+                    if (code == WS_CLOSE_INVALID_IDENTIFIER) return
+                    scheduleReconnect(motivo)
+                }
+            })
+        } catch (e: Exception) {
+            isConnected = false
+            handler.post { onStatusChanged(false, e.localizedMessage ?: "URL inválida") }
+            Log.e("WSClient", "Error creando WebSocket request: ${e.message}")
+        }
     }
 
     /** Reintento con retroceso exponencial y tope, en lugar de cada 3 s indefinidamente. */
@@ -124,6 +131,7 @@ class WebSocketClientManager(
 
         if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
             Log.w("WSClient", "Agotados los $MAX_RECONNECT_ATTEMPTS reintentos de conexión. Se detiene.")
+            handler.post { onStatusChanged(false, "Sin conexión tras $MAX_RECONNECT_ATTEMPTS intentos") }
             return
         }
 
@@ -132,8 +140,14 @@ class WebSocketClientManager(
             MAX_RECONNECT_DELAY_MS
         )
         reconnectAttempts++
-        Log.w("WSClient", "Fallo en conexión WS: $cause. Reintento $reconnectAttempts en ${delayMs}ms")
+        Log.w("WSClient", "Reintento $reconnectAttempts en ${delayMs}ms (causa: $cause)")
         handler.postDelayed({ connect() }, delayMs)
+    }
+
+    private fun reportRejectedIdentifier(reason: String) {
+        val mensaje = "Identificador '$studentId' rechazado: $reason"
+        Log.e("WSClient", "$mensaje. Debe cumplir [A-Za-z0-9_-]{1,32}.")
+        handler.post { onStatusChanged(false, mensaje) }
     }
 
     /**
@@ -153,6 +167,7 @@ class WebSocketClientManager(
         try {
             val json = JSONObject().apply {
                 put("timestamp", System.currentTimeMillis() / 1000.0)
+                put("student_id", studentId)
                 put("target_room_id", targetRoomId)
                 val readingsObj = JSONObject()
                 for ((bssid, rssi) in readingsMap) {

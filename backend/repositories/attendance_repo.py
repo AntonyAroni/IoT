@@ -145,6 +145,10 @@ class InMemoryAttendanceRepository(IAttendanceRepository):
         """True si hay cambios en memoria todavía no volcados a disco."""
         return self._pending_write
 
+    def get_all_students(self) -> List[Student]:
+        """Padrón completo. Lo usa la selección dinámica de alumno multidispositivo."""
+        return list(self._students.values())
+
     def save_to_file(self, filepath: str) -> None:
         os.makedirs(os.path.dirname(os.path.abspath(filepath)), exist_ok=True)
         data = [rec.to_dict() for rec in self._records.values()]

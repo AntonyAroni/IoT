@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 
 from .config import config
 from .domain.graph import create_default_school_graph
@@ -24,8 +24,10 @@ from .api import (
     calibration_router,
     navigation_router,
     attendance_router,
+    network_router,
     websocket_router
 )
+from .services.signal_filters import MultiBSSIDKalmanFilter, TrajectoryKinematicFilter2D
 
 # Configurar Logging estructurado
 logging.basicConfig(
@@ -50,6 +52,10 @@ class ApplicationState:
         self.navigation_engine = NavigationEngine(self.graph, self.floors)
         self.attendance_tracker = AttendanceTrackerService(self.attendance_repo, config.attendance)
         self.connection_manager = ConnectionManager()
+
+        # 4. Filtros Híbridos por Cliente Móvil (Kalman 1D para RSSI y Cinemático 2D para Trayectoria)
+        self.mobile_kalman_filters: dict = {}
+        self.mobile_trajectory_filters: dict = {}
 
 # Instancia global del estado de la aplicación
 app_state = ApplicationState()
@@ -122,6 +128,7 @@ app.include_router(building_router)
 app.include_router(calibration_router)
 app.include_router(navigation_router)
 app.include_router(attendance_router)
+app.include_router(network_router)
 app.include_router(websocket_router)
 
 # Montar Frontend de Estaciones de Salón si existe el directorio
@@ -137,6 +144,16 @@ def health_check():
         "floors": len(app_state.floors),
         "calibrated_points": len(app_state.radio_map_repo.get_all_entries())
     }
+
+@app.get("/apk", tags=["Mobile Client"])
+@app.get("/download/apk", tags=["Mobile Client"])
+def download_apk():
+    apk_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "app-debug.apk"))
+    if not os.path.exists(apk_path):
+        apk_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "mobile_app", "android_client", "app", "build", "outputs", "apk", "debug", "app-debug.apk"))
+    if os.path.exists(apk_path):
+        return FileResponse(apk_path, media_type="application/vnd.android.package-archive", filename="app-debug.apk")
+    return {"error": "APK not found. Build it with ./gradlew assembleDebug"}
 
 @app.get("/", include_in_schema=False)
 def root():

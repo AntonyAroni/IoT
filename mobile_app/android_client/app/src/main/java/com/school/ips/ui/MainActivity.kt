@@ -33,6 +33,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvConnectionStatus: TextView
     private lateinit var btnConfigServer: Button
 
+    // UI Elements - Identidad de Alumno
+    private lateinit var tvStudentInfo: TextView
+    private lateinit var tvTargetRoomInfo: TextView
+    private lateinit var btnConfigUser: Button
+
     // UI Elements - Navegación
     private lateinit var tvCurrentFloor: TextView
     private lateinit var tvActiveClue: TextView
@@ -58,11 +63,11 @@ class MainActivity : AppCompatActivity() {
 
     // Identidad del alumno y aula asignada. Estaban fijados como constantes, de modo que todo
     // dispositivo con el APK instalado se identificaba como el mismo alumno. Se persisten en
-    // SharedPreferences igual que la IP del servidor, y el diálogo inicial los solicita.
+    // SharedPreferences igual que la IP del servidor.
     // Nota: esto identifica, no autentica. El servidor acepta cualquier identificador que se le
-    // envíe; añadir un token por alumno sigue pendiente.
-    private var studentId: String = DEFAULT_STUDENT_ID
-    private var targetRoomId: String = DEFAULT_ROOM_ID
+    // envíe; añadir un token por dispositivo sigue pendiente.
+    private var currentStudentId: String = DEFAULT_STUDENT_ID
+    private var currentTargetRoomId: String = DEFAULT_ROOM_ID
 
     // Buffer de últimas lecturas Wi-Fi recibidas
     private var latestWifiReadings: List<WifiReading> = emptyList()
@@ -84,14 +89,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadSavedServerConfig() {
         currentServerIp = prefs.getString("server_ip", "") ?: ""
-        studentId = prefs.getString("student_id", DEFAULT_STUDENT_ID) ?: DEFAULT_STUDENT_ID
-        targetRoomId = prefs.getString("target_room_id", DEFAULT_ROOM_ID) ?: DEFAULT_ROOM_ID
+        currentStudentId = prefs.getString("student_id", DEFAULT_STUDENT_ID) ?: DEFAULT_STUDENT_ID
+        currentTargetRoomId = prefs.getString("target_room_id", DEFAULT_ROOM_ID) ?: DEFAULT_ROOM_ID
     }
 
     private fun initViews() {
         tvServerInfo = findViewById(R.id.tvServerInfo)
         tvConnectionStatus = findViewById(R.id.tvConnectionStatus)
         btnConfigServer = findViewById(R.id.btnConfigServer)
+
+        tvStudentInfo = findViewById(R.id.tvStudentInfo)
+        tvTargetRoomInfo = findViewById(R.id.tvTargetRoomInfo)
+        btnConfigUser = findViewById(R.id.btnConfigUser)
 
         tvCurrentFloor = findViewById(R.id.tvCurrentFloor)
         tvActiveClue = findViewById(R.id.tvActiveClue)
@@ -109,6 +118,8 @@ class MainActivity : AppCompatActivity() {
         etCoordY = findViewById(R.id.etCoordY)
         spinnerFloor = findViewById(R.id.spinnerFloor)
 
+        updateUserUI()
+
         val floorAdapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
@@ -118,6 +129,10 @@ class MainActivity : AppCompatActivity() {
 
         btnConfigServer.setOnClickListener {
             showServerConfigDialog(isFirstRun = false)
+        }
+
+        btnConfigUser.setOnClickListener {
+            showUserConfigDialog()
         }
 
         btnToggleCalibrator.setOnClickListener {
@@ -131,6 +146,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateUserUI() {
+        tvStudentInfo.text = "Alumno: $currentStudentId"
+        tvTargetRoomInfo.text = "Destino: Aula $currentTargetRoomId"
+    }
+
     private fun initServices() {
         wifiScanner = WifiScannerService(this) { readings ->
             latestWifiReadings = readings
@@ -139,10 +159,10 @@ class MainActivity : AppCompatActivity() {
             // Potencia del AP del aula destino. Sin este dato el servidor deriva el RSSI de la
             // posición estimada y el tablero del docente acaba mostrando un valor calculado
             // como si fuera una medición de radio.
-            val roomApRssi = strongestRssiForRoom(readings, targetRoomId)
+            val roomApRssi = strongestRssiForRoom(readings, currentTargetRoomId)
 
             // Enviar telemetría en vivo si el WebSocket está conectado
-            wsClient?.sendScanVector(readingsMap, targetRoomId, roomApRssi)
+            wsClient?.sendScanVector(readingsMap, currentTargetRoomId, roomApRssi)
         }
 
         updateServerConnection()
@@ -194,17 +214,20 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val posX = etCoordX.text.toString().trim().toFloatOrNull() ?: 10.0f
+            val posY = etCoordY.text.toString().trim().toFloatOrNull() ?: 2.0f
+
             CoroutineScope(Dispatchers.Main).launch {
                 val result = cal.uploadCalibrationPoint(
                     rpId = rpId,
                     floorNumber = floor,
-                    x = coordX,
-                    y = coordY,
-                    label = "Punto Calibrado $rpId (${coordX}m, ${coordY}m)"
+                    x = posX,
+                    y = posY,
+                    label = "Punto Calibrado $rpId (${posX}m, ${posY}m)"
                 )
                 if (result.isSuccess) {
                     tvSampleCounter.text = "Muestras recolectadas: 0 / 15"
-                    Toast.makeText(this@MainActivity, "✅ Calibración guardada en servidor", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, "✅ Calibración guardada en servidor ($posX m, $posY m)", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(this@MainActivity, "❌ Error al subir: ${result.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -220,23 +243,52 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        tvServerInfo.text = "Servidor: $currentServerIp:$currentServerPort"
+        tvServerInfo.text = "Servidor: $currentServerIp"
         tvConnectionStatus.text = "● Conectando..."
         tvConnectionStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_orange_dark))
 
-        val serverHttpUrl = "http://$currentServerIp:$currentServerPort"
-        val serverWsUrl = "ws://$currentServerIp:$currentServerPort"
+        var cleanHost = currentServerIp.trim()
+        if (cleanHost.contains("/")) {
+            val prefix = if (cleanHost.startsWith("https://")) "https://" else if (cleanHost.startsWith("http://")) "http://" else ""
+            val withoutPrefix = cleanHost.removePrefix("https://").removePrefix("http://")
+            val hostPart = withoutPrefix.split("/")[0]
+            cleanHost = prefix + hostPart
+        }
+
+        val serverHttpUrl: String
+        val serverWsUrl: String
+
+        if (cleanHost.startsWith("https://")) {
+            serverHttpUrl = cleanHost
+            serverWsUrl = cleanHost.replaceFirst("https://", "wss://")
+        } else if (cleanHost.startsWith("http://")) {
+            serverHttpUrl = cleanHost
+            serverWsUrl = cleanHost.replaceFirst("http://", "ws://")
+        } else if (cleanHost.contains(".trycloudflare.com") || cleanHost.contains(".ngrok")) {
+            serverHttpUrl = "https://$cleanHost"
+            serverWsUrl = "wss://$cleanHost"
+        } else if (cleanHost.contains(":")) {
+            serverHttpUrl = "http://$cleanHost"
+            serverWsUrl = "ws://$cleanHost"
+        } else {
+            serverHttpUrl = "http://$cleanHost:$currentServerPort"
+            serverWsUrl = "ws://$cleanHost:$currentServerPort"
+        }
+
+        tvServerInfo.text = "Servidor: ${serverHttpUrl.replace("http://", "").replace("https://", "")}"
+        tvConnectionStatus.text = "● Conectando..."
+        tvConnectionStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_orange_dark))
 
         calibrator = CalibratorManager(serverHttpUrl)
 
         wsClient?.disconnect()
         wsClient = WebSocketClientManager(
             serverWsUrl = serverWsUrl,
-            studentId = studentId,
+            studentId = currentStudentId,
             onFeedbackReceived = { feedback ->
                 tvCurrentFloor.text = "Piso ${feedback.floorNumber}"
                 tvActiveClue.text = feedback.activeClue
-                tvDistance.text = "${feedback.distanceMeters} m restantes"
+                tvDistance.text = String.format(java.util.Locale.US, "%.2f m restantes", feedback.distanceMeters)
                 progressBarNav.progress = feedback.progressPercentage.toInt()
                 tvAttendanceStatus.text = "Estado: ${feedback.attendanceStatus}"
 
@@ -244,82 +296,103 @@ class MainActivity : AppCompatActivity() {
                     tvAttendanceStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
                 }
             },
-            onStatusChanged = { isConnected ->
+            onStatusChanged = { isConnected, errorMsg ->
                 if (isConnected) {
                     tvConnectionStatus.text = "● Conectado"
                     tvConnectionStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_dark))
                 } else {
-                    tvConnectionStatus.text = "● Desconectado"
+                    val detail = if (!errorMsg.isNullOrEmpty()) " ($errorMsg)" else ""
+                    tvConnectionStatus.text = "● Desconectado$detail"
                     tvConnectionStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_dark))
                 }
             }
         )
 
-        // Conectar si los permisos ya fueron otorgados
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            wsClient?.connect()
+        // Conectar el WebSocket directamente sin bloquear por permisos
+        wsClient?.connect()
+    }
+
+    private fun showUserConfigDialog() {
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 24)
         }
+
+        val etStudent = EditText(this).apply {
+            hint = "ID Estudiante (ej. EST_01, EST_02, EST_08)"
+            setText(currentStudentId)
+            setSingleLine()
+        }
+
+        val etRoom = EditText(this).apply {
+            hint = "Aula Asignada (ej. S101, S202, S302)"
+            setText(currentTargetRoomId)
+            setSingleLine()
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = 24 }
+        }
+
+        layout.addView(etStudent)
+        layout.addView(etRoom)
+
+        AlertDialog.Builder(this)
+            .setTitle("Perfil de Alumno / Dispositivo")
+            .setMessage("Personaliza tu usuario para conectar múltiples móviles a la vez sin interferencias:")
+            .setView(layout)
+            .setPositiveButton("Guardar") { _, _ ->
+                val newStudent = etStudent.text.toString().trim()
+                val newRoom = etRoom.text.toString().trim().uppercase()
+
+                // El servidor cierra el handshake con el código 4400 si el identificador no
+                // cumple [A-Za-z0-9_-]{1,32}. Validarlo aquí evita que el alumno vea una
+                // desconexión sin explicación.
+                if (!newStudent.matches(IDENTIFIER_REGEX) || !newRoom.matches(IDENTIFIER_REGEX)) {
+                    Toast.makeText(
+                        this,
+                        "El ID de alumno y el aula solo admiten letras, números, guion y guion bajo (máx. 32).",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@setPositiveButton
+                }
+
+                if (newStudent.isNotEmpty() && newRoom.isNotEmpty()) {
+                    currentStudentId = newStudent
+                    currentTargetRoomId = newRoom
+                    prefs.edit()
+                        .putString("student_id", currentStudentId)
+                        .putString("target_room_id", currentTargetRoomId)
+                        .apply()
+                    updateUserUI()
+                    updateServerConnection()
+                    Toast.makeText(this, "Conectando como $currentStudentId destino $currentTargetRoomId", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun showServerConfigDialog(isFirstRun: Boolean = false) {
-        val ipInput = EditText(this).apply {
-            hint = "IP del servidor, ej. 192.168.1.50"
+        val input = EditText(this).apply {
+            hint = "Ej. 192.168.1.50 o URL de túnel"
             setText(currentServerIp)
             setSingleLine()
-        }
-        val studentInput = EditText(this).apply {
-            hint = "Tu código de alumno, ej. EST_08"
-            setText(studentId)
-            setSingleLine()
-        }
-        val roomInput = EditText(this).apply {
-            hint = "Aula asignada, ej. S302"
-            setText(targetRoomId)
-            setSingleLine()
-        }
-
-        val container = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(48, 36, 48, 12)
-            addView(ipInput)
-            addView(studentInput)
-            addView(roomInput)
+            setPadding(48, 36, 48, 36)
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Configuración del Sensor")
-            .setMessage("Dirección del servidor en la red local e identidad del alumno:")
-            .setView(container)
+            .setTitle("Servidor IPS (Laptop o Túnel)")
+            .setMessage("Ingresa la IP local de tu laptop (ej. 192.168.1.50) o la URL de túnel Cloudflare/ngrok:")
+            .setView(input)
             .setPositiveButton("Guardar y Conectar") { _, _ ->
-                val enteredIp = ipInput.text.toString().trim()
-                if (enteredIp.isNotEmpty()) {
-                    // Limpiar posibles prefijos http:// o puertos accidentales
-                    currentServerIp = enteredIp.replace("http://", "").replace("https://", "").split(":")[0]
+                val entered = input.text.toString().trim()
+                if (entered.isNotEmpty()) {
+                    currentServerIp = entered
+                    prefs.edit().putString("server_ip", currentServerIp).apply()
+                    updateServerConnection()
+                    Toast.makeText(this, "Guardado: $currentServerIp", Toast.LENGTH_SHORT).show()
                 }
-
-                // El servidor rechaza identificadores fuera de [A-Za-z0-9_-]{1,32}, así que se
-                // descartan aquí los valores que harían fallar el handshake sin explicación.
-                val enteredStudent = studentInput.text.toString().trim()
-                if (enteredStudent.matches(IDENTIFIER_REGEX)) {
-                    studentId = enteredStudent
-                }
-                val enteredRoom = roomInput.text.toString().trim()
-                if (enteredRoom.matches(IDENTIFIER_REGEX)) {
-                    targetRoomId = enteredRoom
-                }
-
-                prefs.edit()
-                    .putString("server_ip", currentServerIp)
-                    .putString("student_id", studentId)
-                    .putString("target_room_id", targetRoomId)
-                    .apply()
-
-                updateServerConnection()
-                Toast.makeText(
-                    this,
-                    "Conectando a $currentServerIp como $studentId (aula $targetRoomId)...",
-                    Toast.LENGTH_SHORT
-                ).show()
             }
             .setNegativeButton(if (isFirstRun) "Configurar luego" else "Cancelar") { dialog, _ ->
                 dialog.dismiss()
@@ -327,6 +400,7 @@ class MainActivity : AppCompatActivity() {
             .setCancelable(!isFirstRun)
             .show()
     }
+
 
     private fun checkAndRequestPermissions() {
         val permissions = mutableListOf(

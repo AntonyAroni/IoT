@@ -78,6 +78,53 @@
                 android:paddingRight="12dp" />
         </LinearLayout>
 
+        <!-- Barra de Identidad de Alumno / Dispositivo Móvil -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#1e293b"
+            android:padding="12dp"
+            android:layout_marginTop="8dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvStudentInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Alumno: EST_08"
+                    android:textColor="#38bdf8"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvTargetRoomInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Destino: Aula S302"
+                    android:textColor="#94a3b8"
+                    android:textSize="11sp"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnConfigUser"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="Cambiar Alumno"
+                android:textSize="11sp"
+                android:backgroundTint="#475569"
+                android:textColor="#ffffff"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp" />
+        </LinearLayout>
+
         <!-- Tarjeta de Pista Activa -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -180,11 +227,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
 
-            <!--
-                Coordenadas del punto de referencia, en metros. Estaban fijadas en el código
-                (x=10.0, y=2.0), de modo que toda captura de campo se guardaba en la misma
-                posición y quedaba inservible como punto de referencia.
-            -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -194,9 +236,9 @@
                 <EditText
                     android:id="@+id/etCoordX"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:hint="X en metros"
+                    android:layout_weight="1"
+                    android:hint="Coord X (m)"
                     android:inputType="numberDecimal|numberSigned"
                     android:textColor="#ffffff"
                     android:textColorHint="#9ca3af" />
@@ -204,9 +246,9 @@
                 <EditText
                     android:id="@+id/etCoordY"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:hint="Y en metros"
+                    android:layout_weight="1"
+                    android:hint="Coord Y (m)"
                     android:inputType="numberDecimal|numberSigned"
                     android:textColor="#ffffff"
                     android:textColorHint="#9ca3af"
