@@ -21,14 +21,6 @@ from backend.tests.helpers import IsolatedAppStateMixin
 DESTRUCTIVE_REQUESTS = [
     ("delete", "/api/v1/calibration/radio-map", None),
     ("post", "/api/v1/attendance/room/S302/reset", None),
-    ("post", "/api/v1/calibration/record", {
-        "rp_id": "RP_INTRUSO",
-        "floor_number": 3,
-        "x": 1.0,
-        "y": 1.0,
-        "label": "Punto inyectado",
-        "rssi_means": {"ap_p3_west": -50.0},
-    }),
 ]
 
 
@@ -98,6 +90,48 @@ class TestDestructiveEndpointAccess(IsolatedAppStateMixin, unittest.TestCase):
         with mock.patch("backend.api.security.config.security", SecurityConfig(admin_token="s3cr3t")):
             response = self._send(self.local, "delete", "/api/v1/calibration/radio-map", None)
             self.assertEqual(response.status_code, 401, response.text)
+
+    def test_delete_calibration_point_lifecycle_and_security(self):
+        """Verifica ciclo de vida de borrado de punto y control de acceso."""
+        # 1. Crear punto de prueba
+        payload = {
+            "rp_id": "RP_TEMP_TEST",
+            "floor_number": 2,
+            "x": 5.0,
+            "y": 3.0,
+            "label": "Punto Temporal",
+            "rssi_means": {"ap_p2_01": -60.0},
+        }
+        res_create = self.local.post("/api/v1/calibration/record", json=payload)
+        self.assertEqual(res_create.status_code, 200)
+
+        # 2. Intento remoto sin token -> 403
+        with mock.patch("backend.api.security.config.security", SecurityConfig(admin_token=None)):
+            res_remote = self.remote.delete("/api/v1/calibration/point/RP_TEMP_TEST")
+            self.assertEqual(res_remote.status_code, 403)
+
+        # 3. Borrado local exitoso -> 200
+        res_delete = self.local.delete("/api/v1/calibration/point/RP_TEMP_TEST")
+        self.assertEqual(res_delete.status_code, 200)
+        self.assertIn("eliminado correctamente", res_delete.json()["message"])
+
+        # 4. Segundo intento -> 404 No encontrado
+        res_not_found = self.local.delete("/api/v1/calibration/point/RP_TEMP_TEST")
+        self.assertEqual(res_not_found.status_code, 404)
+
+    def test_remote_mobile_sensor_can_upload_calibration_record(self):
+        """Un sensor móvil en la red local debe poder enviar huellas de calibración."""
+        payload = {
+            "rp_id": "RP_SENSOR_MOVIL",
+            "floor_number": 1,
+            "x": 2.0,
+            "y": 4.0,
+            "label": "Calibración Móvil",
+            "rssi_means": {"ap_hotspot": -50.0},
+        }
+        res = self.remote.post("/api/v1/calibration/record", json=payload)
+        self.assertEqual(res.status_code, 200, res.text)
+        self.assertIn("guardado correctamente", res.json()["message"])
 
     # ------------------------------------------------------------------
     # Las operaciones de solo lectura no deben quedar protegidas

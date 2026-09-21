@@ -10,9 +10,13 @@
 
   <!-- Barra Superior / Header de Estación -->
   <header class="station-header">
-    <div class="header-brand">
+    <div class="header-brand" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
       <span class="brand-badge">IPS Estación</span>
-      <h1 id="roomTitle" style="font-size: 1.4rem; font-weight: 800;">Aula S302</h1>
+      <h1 id="roomTitle" style="font-size: 1.4rem; font-weight: 800; margin: 0;">Aula S302</h1>
+      <div id="roomCoordsChip" class="room-coords-chip" style="display: flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 3px 10px; font-size: 0.78rem; font-family: monospace; color: #38bdf8;">
+        <span>📍 Centro: <strong id="roomCoordsText">--</strong></span>
+        <button id="btnEditRoomCoords" onclick="openMapRoomModal()" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 4px; color: #bae6fd; cursor: pointer; padding: 2px 6px; font-size: 0.76rem; font-weight: 600;" title="Mapear o cambiar coordenadas físicas de esta aula">✏️ Mapear</button>
+      </div>
     </div>
 
     <div class="room-selector-group">
@@ -39,6 +43,10 @@
           <option value="S403">Salón 403</option>
         </optgroup>
       </select>
+
+      <button id="btnManagePoints" onclick="openPointsModal()" style="background: #334155; color: #f8fafc; border: 1px solid #475569; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
+        🎯 Puntos de Calibración
+      </button>
 
       <button id="btnConnectMobile" onclick="openConnectModal()" style="background: #0284c7; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
         📱 Conectar Celular
@@ -170,6 +178,158 @@
     </div>
   </div>
 
+  <!-- Modal de Gestión de Puntos de Control (Calibración) -->
+  <div id="modalPoints" class="station-modal" style="display: none;">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.3rem;">🎯</span>
+          <div>
+            <h3 style="margin: 0; color: #38bdf8; font-size: 1.15rem;">Puntos de Control del Radio-Mapa</h3>
+            <span style="font-size: 0.75rem; color: #94a3b8;">Huellas de calibración registradas para el posicionamiento indoor WKNN</span>
+          </div>
+        </div>
+        <button onclick="closePointsModal()" class="modal-close-btn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="points-toolbar">
+          <div class="filter-pills" id="pointsFloorFilter">
+            <button class="pill-btn active" data-floor="all">Todos</button>
+            <button class="pill-btn" data-floor="1">Piso 1</button>
+            <button class="pill-btn" data-floor="2">Piso 2</button>
+            <button class="pill-btn" data-floor="3">Piso 3</button>
+            <button class="pill-btn" data-floor="4">Piso 4</button>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="pointsSearchInput" placeholder="🔍 Filtrar por ID o etiqueta..." class="search-input">
+            <span id="pointsTotalBadge" class="badge-count">0 puntos</span>
+          </div>
+        </div>
+
+        <div class="points-table-container">
+          <table class="points-table">
+            <thead>
+              <tr>
+                <th>ID Punto</th>
+                <th>Piso</th>
+                <th>Posición (X, Y)</th>
+                <th>Salón / Etiqueta</th>
+                <th>APs Detectados</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="pointsTableBody">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px solid #334155; padding-top: 12px; margin-top: 8px;">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button id="btnClearAllPoints" class="btn btn-danger" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 6px 12px;">
+            ⚠️ Vaciar Todo el Radio-Mapa (0 Puntos)
+          </button>
+          <button id="btnRestoreBaseline" class="btn btn-outline" style="font-size: 0.78rem; padding: 6px 12px;">
+            🔄 Restaurar Respaldo Base
+          </button>
+        </div>
+        <button onclick="closePointsModal()" class="btn btn-outline" style="padding: 6px 16px;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Mapear Coordenadas de Aula -->
+  <div id="modalMapRoom" class="station-modal" style="display: none; z-index: 9999;">
+    <div class="modal-card modal-medium">
+      <div class="modal-header">
+        <h3 style="margin: 0; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+          📍 Mapear Coordenadas de <span id="mapRoomModalId" style="color: white;">Aula</span>
+        </h3>
+        <button onclick="closeMapRoomModal()" class="btn-close-icon">&times;</button>
+      </div>
+
+      <div class="modal-body" style="padding: 16px 0;">
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0; line-height: 1.5;">
+          Configura las coordenadas físicas reales del aula en metros (ej. posición de la laptop docente y de la puerta de entrada) o asígnalas directamente desde un Punto de Control calibrado.
+        </p>
+
+        <!-- Opción 1: Asignar desde Punto de Control -->
+        <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+          <h4 style="margin: 0 0 10px 0; color: #38bdf8; font-size: 0.9rem;">🎯 Opción A: Copiar desde Punto Calibrado</h4>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <select id="selectRpToRoom" class="room-select" style="flex: 1; min-width: 200px;">
+              <option value="">-- Selecciona un punto de control --</option>
+            </select>
+            <select id="selectRpRole" class="room-select" style="width: 140px;">
+              <option value="center">Centro / Laptop</option>
+              <option value="entrance">Puerta / Entrada</option>
+            </select>
+            <button id="btnAssignRpToRoom" class="btn btn-outline" style="background: #0284c7; color: white; border: none; padding: 7px 14px; font-weight: 600; font-size: 0.82rem;">
+              Asignar Punto
+            </button>
+          </div>
+        </div>
+
+        <!-- Opción 2: Coordenadas Manuales -->
+        <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 8px; padding: 14px;">
+          <h4 style="margin: 0 0 10px 0; color: #a78bfa; font-size: 0.9rem;">📐 Opción B: Coordenadas Métricas Manuales</h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Centro / Laptop (X, Y en m):</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="number" step="0.05" id="inputRoomCenterX" placeholder="X (m)" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: white; padding: 6px 10px; border-radius: 4px; font-family: monospace;">
+                <input type="number" step="0.05" id="inputRoomCenterY" placeholder="Y (m)" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: white; padding: 6px 10px; border-radius: 4px; font-family: monospace;">
+              </div>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Puerta / Entrada (X, Y en m):</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="number" step="0.05" id="inputRoomEntranceX" placeholder="X (m)" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: white; padding: 6px 10px; border-radius: 4px; font-family: monospace;">
+                <input type="number" step="0.05" id="inputRoomEntranceY" placeholder="Y (m)" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: white; padding: 6px 10px; border-radius: 4px; font-family: monospace;">
+              </div>
+            </div>
+          </div>
+          <div style="margin-top: 12px; text-align: right;">
+            <button id="btnSaveManualRoomCoords" class="btn btn-outline" style="background: #8b5cf6; color: white; border: none; padding: 7px 16px; font-weight: 600; font-size: 0.82rem;">
+              💾 Guardar Coordenadas
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; border-top: 1px solid #334155; padding-top: 12px;">
+        <button onclick="closeMapRoomModal()" class="btn btn-outline" style="padding: 6px 16px;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Pop-up de Confirmación de Alerta (Acciones Destructivas) -->
+  <div id="modalConfirm" class="station-modal" style="display: none; z-index: 10000;">
+    <div class="modal-card modal-small" style="border: 1px solid #ef4444; box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);">
+      <div style="display: flex; gap: 14px; align-items: flex-start;">
+        <div style="background: rgba(239, 68, 68, 0.15); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #ef4444; flex-shrink: 0;">
+          ⚠️
+        </div>
+        <div style="flex: 1;">
+          <h3 id="confirmModalTitle" style="margin: 0 0 8px 0; color: #f87171; font-size: 1.1rem; font-weight: 700;">Confirmar Acción</h3>
+          <p id="confirmModalMessage" style="margin: 0; color: #cbd5e1; font-size: 0.88rem; line-height: 1.45;">
+            ¿Estás seguro de que deseas realizar esta acción?
+          </p>
+          <div id="confirmModalWarning" style="margin-top: 10px; padding: 8px 10px; background: rgba(239, 68, 68, 0.1); border-left: 3px solid #ef4444; border-radius: 4px; font-size: 0.78rem; color: #fca5a5;">
+            Esta operación eliminará datos permanentemente para evitar contaminación.
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px;">
+        <button id="btnConfirmCancel" class="btn btn-outline" style="padding: 7px 16px; font-size: 0.85rem;">Cancelar</button>
+        <button id="btnConfirmOk" class="btn btn-danger" style="background: #dc2626; color: white; border: none; padding: 7px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Sí, Eliminar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     window.openConnectModal = async function() {
       const modal = document.getElementById('modalConnect');
@@ -192,6 +352,6 @@
     };
   </script>
 
-  <script type="module" src="js/station_app.js?v=2.5"></script>
+  <script type="module" src="js/station_app.js?v=2.7"></script>
 </body>
 </html>

@@ -228,7 +228,8 @@ class MainActivity : AppCompatActivity() {
                     floorNumber = floor,
                     x = posX,
                     y = posY,
-                    label = "Punto Calibrado $rpId (${posX}m, ${posY}m)"
+                    label = "Punto Calibrado $rpId (${posX}m, ${posY}m)",
+                    roomId = currentTargetRoomId.ifEmpty { null }
                 )
                 if (result.isSuccess) {
                     tvSampleCounter.text = "Muestras recolectadas: 0 / 15"

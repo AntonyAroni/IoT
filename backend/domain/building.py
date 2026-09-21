@@ -16,7 +16,7 @@ class Point2D:
         import math
         return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
-@dataclass(frozen=True)
+@dataclass
 class Room:
     """Representa un aula o salón del edificio."""
     id: str                 # Ej. "S101", "S202"

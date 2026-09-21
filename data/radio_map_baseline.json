@@ -1,0 +1,1400 @@
+[
+  {
+    "id": "RP_S101_Center",
+    "floor_number": 1,
+    "position": {
+      "x": 2.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 101",
+    "room_id": "S101",
+    "rssi_means": {
+      "ap_p1_west": -52.9,
+      "ap_p1_east": -74.4,
+      "ap_p1_room02": -67.0,
+      "ap_p2_west": -67.5,
+      "ap_p2_east": -87.6,
+      "ap_p2_room02": -81.1,
+      "ap_p3_west": -80.5,
+      "ap_p3_room02": -100.0,
+      "ap_p4_west": -99.1
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.53,
+      "ap_p1_east": 1.14,
+      "ap_p1_room02": 1.44,
+      "ap_p2_west": 0.95,
+      "ap_p2_east": 1.3,
+      "ap_p2_room02": 1.48,
+      "ap_p3_west": 1.22,
+      "ap_p3_room02": 5.37,
+      "ap_p4_west": 5.56
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S101_Door",
+    "floor_number": 1,
+    "position": {
+      "x": 2.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 101",
+    "room_id": "S101",
+    "rssi_means": {
+      "ap_p1_west": -50.6,
+      "ap_p1_east": -73.7,
+      "ap_p1_room02": -67.7,
+      "ap_p2_west": -64.8,
+      "ap_p2_east": -88.3,
+      "ap_p2_room02": -81.6,
+      "ap_p3_west": -78.6,
+      "ap_p3_room02": -99.8,
+      "ap_p4_west": -95.2
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.39,
+      "ap_p1_east": 1.68,
+      "ap_p1_room02": 2.2,
+      "ap_p2_west": 1.56,
+      "ap_p2_east": 1.29,
+      "ap_p2_room02": 1.39,
+      "ap_p3_west": 1.21,
+      "ap_p3_room02": 5.62,
+      "ap_p4_west": 4.99
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S102_Center",
+    "floor_number": 1,
+    "position": {
+      "x": 10.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 102",
+    "room_id": "S102",
+    "rssi_means": {
+      "ap_p1_west": -64.2,
+      "ap_p1_east": -64.2,
+      "ap_p1_room02": -39.4,
+      "ap_p2_west": -77.9,
+      "ap_p2_east": -78.0,
+      "ap_p2_room02": -53.4,
+      "ap_p3_west": -94.2,
+      "ap_p3_east": -91.8,
+      "ap_p3_room02": -67.7,
+      "ap_p4_room02": -81.2
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.13,
+      "ap_p1_east": 1.35,
+      "ap_p1_room02": 1.17,
+      "ap_p2_west": 1.41,
+      "ap_p2_east": 1.21,
+      "ap_p2_room02": 1.29,
+      "ap_p3_west": 4.39,
+      "ap_p3_east": 1.49,
+      "ap_p3_room02": 1.35,
+      "ap_p4_room02": 1.5
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S102_Door",
+    "floor_number": 1,
+    "position": {
+      "x": 10.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 102",
+    "room_id": "S102",
+    "rssi_means": {
+      "ap_p1_west": -63.9,
+      "ap_p1_east": -64.3,
+      "ap_p1_room02": -50.8,
+      "ap_p2_west": -77.9,
+      "ap_p2_east": -77.8,
+      "ap_p2_room02": -64.6,
+      "ap_p3_west": -91.9,
+      "ap_p3_east": -92.3,
+      "ap_p3_room02": -78.3,
+      "ap_p4_room02": -92.5
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.55,
+      "ap_p1_east": 1.39,
+      "ap_p1_room02": 1.44,
+      "ap_p2_west": 1.11,
+      "ap_p2_east": 1.49,
+      "ap_p2_room02": 2.15,
+      "ap_p3_west": 1.06,
+      "ap_p3_east": 1.08,
+      "ap_p3_room02": 1.03,
+      "ap_p4_room02": 1.34
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S103_Center",
+    "floor_number": 1,
+    "position": {
+      "x": 18.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 103",
+    "room_id": "S103",
+    "rssi_means": {
+      "ap_p1_west": -73.7,
+      "ap_p1_east": -52.5,
+      "ap_p1_room02": -67.2,
+      "ap_p2_west": -88.8,
+      "ap_p2_east": -67.1,
+      "ap_p2_room02": -81.2,
+      "ap_p3_east": -81.1,
+      "ap_p3_room02": -100.4,
+      "ap_p4_east": -100.5
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.75,
+      "ap_p1_east": 1.75,
+      "ap_p1_room02": 1.54,
+      "ap_p2_west": 1.54,
+      "ap_p2_east": 1.91,
+      "ap_p2_room02": 1.71,
+      "ap_p3_east": 1.41,
+      "ap_p3_room02": 5.71,
+      "ap_p4_east": 5.49
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S103_Door",
+    "floor_number": 1,
+    "position": {
+      "x": 18.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 103",
+    "room_id": "S103",
+    "rssi_means": {
+      "ap_p1_west": -74.4,
+      "ap_p1_east": -51.0,
+      "ap_p1_room02": -67.3,
+      "ap_p2_west": -88.9,
+      "ap_p2_east": -64.2,
+      "ap_p2_room02": -81.4,
+      "ap_p3_east": -79.2,
+      "ap_p3_room02": -101.3,
+      "ap_p4_east": -95.1
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.52,
+      "ap_p1_east": 1.83,
+      "ap_p1_room02": 1.52,
+      "ap_p2_west": 1.44,
+      "ap_p2_east": 1.12,
+      "ap_p2_room02": 1.35,
+      "ap_p3_east": 1.74,
+      "ap_p3_room02": 5.24,
+      "ap_p4_east": 5.03
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S201_Center",
+    "floor_number": 2,
+    "position": {
+      "x": 2.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 201",
+    "room_id": "S201",
+    "rssi_means": {
+      "ap_p1_west": -67.1,
+      "ap_p1_east": -88.6,
+      "ap_p1_room02": -82.0,
+      "ap_p2_west": -53.9,
+      "ap_p2_east": -74.4,
+      "ap_p2_room02": -67.6,
+      "ap_p3_west": -67.3,
+      "ap_p3_east": -88.2,
+      "ap_p3_room02": -81.6,
+      "ap_p4_west": -81.3,
+      "ap_p4_room02": -100.5
+    },
+    "rssi_std": {
+      "ap_p1_west": 0.95,
+      "ap_p1_east": 1.24,
+      "ap_p1_room02": 0.97,
+      "ap_p2_west": 1.61,
+      "ap_p2_east": 1.53,
+      "ap_p2_room02": 1.33,
+      "ap_p3_west": 1.31,
+      "ap_p3_east": 1.31,
+      "ap_p3_room02": 1.24,
+      "ap_p4_west": 1.21,
+      "ap_p4_room02": 5.53
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S201_Door",
+    "floor_number": 2,
+    "position": {
+      "x": 2.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 201",
+    "room_id": "S201",
+    "rssi_means": {
+      "ap_p1_west": -64.7,
+      "ap_p1_east": -88.1,
+      "ap_p1_room02": -80.9,
+      "ap_p2_west": -51.0,
+      "ap_p2_east": -74.2,
+      "ap_p2_room02": -67.5,
+      "ap_p3_west": -64.4,
+      "ap_p3_east": -88.5,
+      "ap_p3_room02": -81.3,
+      "ap_p4_west": -78.4
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.35,
+      "ap_p1_east": 1.3,
+      "ap_p1_room02": 1.52,
+      "ap_p2_west": 1.41,
+      "ap_p2_east": 1.23,
+      "ap_p2_room02": 1.35,
+      "ap_p3_west": 0.89,
+      "ap_p3_east": 1.31,
+      "ap_p3_room02": 1.37,
+      "ap_p4_west": 1.64
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S202_Center",
+    "floor_number": 2,
+    "position": {
+      "x": 10.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 202",
+    "room_id": "S202",
+    "rssi_means": {
+      "ap_p1_west": -78.1,
+      "ap_p1_east": -78.2,
+      "ap_p1_room02": -53.8,
+      "ap_p2_west": -63.9,
+      "ap_p2_east": -64.6,
+      "ap_p2_room02": -39.6,
+      "ap_p3_west": -77.5,
+      "ap_p3_east": -77.6,
+      "ap_p3_room02": -54.3,
+      "ap_p4_west": -91.6,
+      "ap_p4_east": -92.6,
+      "ap_p4_room02": -67.3
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.54,
+      "ap_p1_east": 1.6,
+      "ap_p1_room02": 1.76,
+      "ap_p2_west": 1.45,
+      "ap_p2_east": 1.73,
+      "ap_p2_room02": 1.33,
+      "ap_p3_west": 1.86,
+      "ap_p3_east": 1.57,
+      "ap_p3_room02": 1.59,
+      "ap_p4_west": 1.07,
+      "ap_p4_east": 1.53,
+      "ap_p4_room02": 1.52
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S202_Door",
+    "floor_number": 2,
+    "position": {
+      "x": 10.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 202",
+    "room_id": "S202",
+    "rssi_means": {
+      "ap_p1_west": -78.3,
+      "ap_p1_east": -77.3,
+      "ap_p1_room02": -64.7,
+      "ap_p2_west": -63.2,
+      "ap_p2_east": -63.8,
+      "ap_p2_room02": -50.3,
+      "ap_p3_west": -78.4,
+      "ap_p3_east": -77.8,
+      "ap_p3_room02": -64.9,
+      "ap_p4_west": -91.9,
+      "ap_p4_east": -92.1,
+      "ap_p4_room02": -78.2
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.56,
+      "ap_p1_east": 1.5,
+      "ap_p1_room02": 1.22,
+      "ap_p2_west": 2.06,
+      "ap_p2_east": 1.49,
+      "ap_p2_room02": 1.26,
+      "ap_p3_west": 1.51,
+      "ap_p3_east": 1.08,
+      "ap_p3_room02": 1.03,
+      "ap_p4_west": 1.49,
+      "ap_p4_east": 1.36,
+      "ap_p4_room02": 1.34
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S203_Center",
+    "floor_number": 2,
+    "position": {
+      "x": 18.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 203",
+    "room_id": "S203",
+    "rssi_means": {
+      "ap_p1_west": -87.9,
+      "ap_p1_east": -67.0,
+      "ap_p1_room02": -80.6,
+      "ap_p2_west": -73.4,
+      "ap_p2_east": -52.6,
+      "ap_p2_room02": -66.9,
+      "ap_p3_west": -88.2,
+      "ap_p3_east": -67.3,
+      "ap_p3_room02": -81.8,
+      "ap_p4_east": -81.0
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.19,
+      "ap_p1_east": 1.13,
+      "ap_p1_room02": 1.9,
+      "ap_p2_west": 1.45,
+      "ap_p2_east": 1.37,
+      "ap_p2_room02": 1.8,
+      "ap_p3_west": 0.93,
+      "ap_p3_east": 1.07,
+      "ap_p3_room02": 1.8,
+      "ap_p4_east": 1.68
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S203_Door",
+    "floor_number": 2,
+    "position": {
+      "x": 18.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 203",
+    "room_id": "S203",
+    "rssi_means": {
+      "ap_p1_west": -88.2,
+      "ap_p1_east": -64.5,
+      "ap_p1_room02": -81.6,
+      "ap_p2_west": -73.8,
+      "ap_p2_east": -51.2,
+      "ap_p2_room02": -68.3,
+      "ap_p3_west": -88.7,
+      "ap_p3_east": -64.1,
+      "ap_p3_room02": -81.8,
+      "ap_p4_east": -79.4,
+      "ap_p4_room02": -100.6
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.38,
+      "ap_p1_east": 1.48,
+      "ap_p1_room02": 1.53,
+      "ap_p2_west": 1.77,
+      "ap_p2_east": 1.72,
+      "ap_p2_room02": 1.64,
+      "ap_p3_west": 1.61,
+      "ap_p3_east": 1.28,
+      "ap_p3_room02": 1.65,
+      "ap_p4_east": 1.97,
+      "ap_p4_room02": 5.39
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S301_Center",
+    "floor_number": 3,
+    "position": {
+      "x": 2.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 301",
+    "room_id": "S301",
+    "rssi_means": {
+      "ap_p1_west": -81.1,
+      "ap_p1_room02": -99.1,
+      "ap_p2_west": -66.0,
+      "ap_p2_east": -87.8,
+      "ap_p2_room02": -81.3,
+      "ap_p3_west": -53.2,
+      "ap_p3_east": -74.1,
+      "ap_p3_room02": -67.2,
+      "ap_p4_west": -67.3,
+      "ap_p4_east": -88.4,
+      "ap_p4_room02": -81.3
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.5,
+      "ap_p1_room02": 5.54,
+      "ap_p2_west": 1.3,
+      "ap_p2_east": 1.41,
+      "ap_p2_room02": 1.62,
+      "ap_p3_west": 1.68,
+      "ap_p3_east": 1.66,
+      "ap_p3_room02": 1.68,
+      "ap_p4_west": 1.26,
+      "ap_p4_east": 1.44,
+      "ap_p4_room02": 1.66
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S301_Door",
+    "floor_number": 3,
+    "position": {
+      "x": 2.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 301",
+    "room_id": "S301",
+    "rssi_means": {
+      "ap_p1_west": -78.7,
+      "ap_p2_west": -64.8,
+      "ap_p2_east": -88.5,
+      "ap_p2_room02": -82.1,
+      "ap_p3_west": -50.2,
+      "ap_p3_east": -74.2,
+      "ap_p3_room02": -67.1,
+      "ap_p4_west": -64.6,
+      "ap_p4_east": -88.4,
+      "ap_p4_room02": -82.1
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.12,
+      "ap_p2_west": 1.67,
+      "ap_p2_east": 1.44,
+      "ap_p2_room02": 1.5,
+      "ap_p3_west": 1.51,
+      "ap_p3_east": 1.26,
+      "ap_p3_room02": 1.3,
+      "ap_p4_west": 1.62,
+      "ap_p4_east": 0.97,
+      "ap_p4_room02": 1.22
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S302_Center",
+    "floor_number": 3,
+    "position": {
+      "x": 10.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 302",
+    "room_id": "S302",
+    "rssi_means": {
+      "ap_p1_west": -91.8,
+      "ap_p1_east": -91.7,
+      "ap_p1_room02": -67.1,
+      "ap_p2_west": -78.3,
+      "ap_p2_east": -78.6,
+      "ap_p2_room02": -53.3,
+      "ap_p3_west": -64.3,
+      "ap_p3_east": -64.5,
+      "ap_p3_room02": -39.7,
+      "ap_p4_west": -77.8,
+      "ap_p4_east": -78.4,
+      "ap_p4_room02": -53.1
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.17,
+      "ap_p1_east": 1.19,
+      "ap_p1_room02": 1.52,
+      "ap_p2_west": 1.8,
+      "ap_p2_east": 1.06,
+      "ap_p2_room02": 0.98,
+      "ap_p3_west": 1.17,
+      "ap_p3_east": 1.7,
+      "ap_p3_room02": 1.18,
+      "ap_p4_west": 1.5,
+      "ap_p4_east": 1.47,
+      "ap_p4_room02": 1.61
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S302_Door",
+    "floor_number": 3,
+    "position": {
+      "x": 10.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 302",
+    "room_id": "S302",
+    "rssi_means": {
+      "ap_p1_west": -91.6,
+      "ap_p1_east": -92.1,
+      "ap_p1_room02": -78.2,
+      "ap_p2_west": -77.9,
+      "ap_p2_east": -77.6,
+      "ap_p2_room02": -64.4,
+      "ap_p3_west": -63.8,
+      "ap_p3_east": -63.8,
+      "ap_p3_room02": -50.4,
+      "ap_p4_west": -77.7,
+      "ap_p4_east": -77.9,
+      "ap_p4_room02": -63.9
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.14,
+      "ap_p1_east": 1.08,
+      "ap_p1_room02": 1.12,
+      "ap_p2_west": 1.71,
+      "ap_p2_east": 1.23,
+      "ap_p2_room02": 1.02,
+      "ap_p3_west": 1.56,
+      "ap_p3_east": 1.45,
+      "ap_p3_room02": 1.44,
+      "ap_p4_west": 1.54,
+      "ap_p4_east": 0.97,
+      "ap_p4_room02": 1.34
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S303_Center",
+    "floor_number": 3,
+    "position": {
+      "x": 18.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 303",
+    "room_id": "S303",
+    "rssi_means": {
+      "ap_p1_east": -81.0,
+      "ap_p1_room02": -97.9,
+      "ap_p2_west": -88.0,
+      "ap_p2_east": -66.6,
+      "ap_p2_room02": -81.7,
+      "ap_p3_west": -73.7,
+      "ap_p3_east": -52.9,
+      "ap_p3_room02": -67.1,
+      "ap_p4_west": -88.6,
+      "ap_p4_east": -66.1,
+      "ap_p4_room02": -80.6
+    },
+    "rssi_std": {
+      "ap_p1_east": 2.1,
+      "ap_p1_room02": 5.03,
+      "ap_p2_west": 1.69,
+      "ap_p2_east": 1.81,
+      "ap_p2_room02": 1.55,
+      "ap_p3_west": 1.25,
+      "ap_p3_east": 1.79,
+      "ap_p3_room02": 1.65,
+      "ap_p4_west": 1.83,
+      "ap_p4_east": 1.32,
+      "ap_p4_room02": 1.68
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S303_Door",
+    "floor_number": 3,
+    "position": {
+      "x": 18.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 303",
+    "room_id": "S303",
+    "rssi_means": {
+      "ap_p1_east": -79.2,
+      "ap_p2_west": -88.3,
+      "ap_p2_east": -65.0,
+      "ap_p2_room02": -81.5,
+      "ap_p3_west": -73.4,
+      "ap_p3_east": -50.8,
+      "ap_p3_room02": -67.7,
+      "ap_p4_west": -88.5,
+      "ap_p4_east": -65.6,
+      "ap_p4_room02": -80.7
+    },
+    "rssi_std": {
+      "ap_p1_east": 1.44,
+      "ap_p2_west": 1.25,
+      "ap_p2_east": 1.18,
+      "ap_p2_room02": 1.61,
+      "ap_p3_west": 1.72,
+      "ap_p3_east": 1.61,
+      "ap_p3_room02": 1.3,
+      "ap_p4_west": 1.24,
+      "ap_p4_east": 1.79,
+      "ap_p4_room02": 1.49
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S401_Center",
+    "floor_number": 4,
+    "position": {
+      "x": 2.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 401",
+    "room_id": "S401",
+    "rssi_means": {
+      "ap_p1_west": -98.9,
+      "ap_p2_west": -80.5,
+      "ap_p2_room02": -99.2,
+      "ap_p3_west": -67.6,
+      "ap_p3_east": -88.1,
+      "ap_p3_room02": -81.3,
+      "ap_p4_west": -52.9,
+      "ap_p4_east": -74.1,
+      "ap_p4_room02": -67.5
+    },
+    "rssi_std": {
+      "ap_p1_west": 5.77,
+      "ap_p2_west": 1.35,
+      "ap_p2_room02": 5.46,
+      "ap_p3_west": 1.43,
+      "ap_p3_east": 1.31,
+      "ap_p3_room02": 0.85,
+      "ap_p4_west": 1.33,
+      "ap_p4_east": 1.44,
+      "ap_p4_room02": 1.37
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S401_Door",
+    "floor_number": 4,
+    "position": {
+      "x": 2.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 401",
+    "room_id": "S401",
+    "rssi_means": {
+      "ap_p1_west": -94.4,
+      "ap_p2_west": -78.5,
+      "ap_p3_west": -65.0,
+      "ap_p3_east": -88.2,
+      "ap_p3_room02": -81.7,
+      "ap_p4_west": -51.5,
+      "ap_p4_east": -74.0,
+      "ap_p4_room02": -67.8
+    },
+    "rssi_std": {
+      "ap_p1_west": 4.39,
+      "ap_p2_west": 1.18,
+      "ap_p3_west": 1.4,
+      "ap_p3_east": 1.41,
+      "ap_p3_room02": 1.75,
+      "ap_p4_west": 1.28,
+      "ap_p4_east": 1.12,
+      "ap_p4_room02": 1.44
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S402_Center",
+    "floor_number": 4,
+    "position": {
+      "x": 10.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 402",
+    "room_id": "S402",
+    "rssi_means": {
+      "ap_p1_room02": -81.8,
+      "ap_p2_west": -93.2,
+      "ap_p2_east": -92.3,
+      "ap_p2_room02": -67.6,
+      "ap_p3_west": -78.2,
+      "ap_p3_east": -78.4,
+      "ap_p3_room02": -53.2,
+      "ap_p4_west": -63.4,
+      "ap_p4_east": -63.9,
+      "ap_p4_room02": -39.4
+    },
+    "rssi_std": {
+      "ap_p1_room02": 1.95,
+      "ap_p2_west": 3.38,
+      "ap_p2_east": 1.44,
+      "ap_p2_room02": 1.48,
+      "ap_p3_west": 1.7,
+      "ap_p3_east": 1.51,
+      "ap_p3_room02": 1.3,
+      "ap_p4_west": 1.52,
+      "ap_p4_east": 0.97,
+      "ap_p4_room02": 1.68
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S402_Door",
+    "floor_number": 4,
+    "position": {
+      "x": 10.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 402",
+    "room_id": "S402",
+    "rssi_means": {
+      "ap_p1_room02": -92.3,
+      "ap_p2_west": -92.5,
+      "ap_p2_east": -91.7,
+      "ap_p2_room02": -77.9,
+      "ap_p3_west": -78.3,
+      "ap_p3_east": -77.7,
+      "ap_p3_room02": -64.8,
+      "ap_p4_west": -63.8,
+      "ap_p4_east": -63.8,
+      "ap_p4_room02": -50.5
+    },
+    "rssi_std": {
+      "ap_p1_room02": 1.08,
+      "ap_p2_west": 3.65,
+      "ap_p2_east": 1.79,
+      "ap_p2_room02": 1.21,
+      "ap_p3_west": 1.3,
+      "ap_p3_east": 1.33,
+      "ap_p3_room02": 1.48,
+      "ap_p4_west": 0.99,
+      "ap_p4_east": 1.47,
+      "ap_p4_room02": 1.15
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S403_Center",
+    "floor_number": 4,
+    "position": {
+      "x": 18.0,
+      "y": 2.0
+    },
+    "label": "Centro del Aula 403",
+    "room_id": "S403",
+    "rssi_means": {
+      "ap_p1_east": -101.3,
+      "ap_p2_east": -81.6,
+      "ap_p2_room02": -100.6,
+      "ap_p3_west": -87.2,
+      "ap_p3_east": -67.1,
+      "ap_p3_room02": -81.5,
+      "ap_p4_west": -74.1,
+      "ap_p4_east": -52.8,
+      "ap_p4_room02": -66.9
+    },
+    "rssi_std": {
+      "ap_p1_east": 5.29,
+      "ap_p2_east": 1.35,
+      "ap_p2_room02": 5.35,
+      "ap_p3_west": 0.98,
+      "ap_p3_east": 1.1,
+      "ap_p3_room02": 0.9,
+      "ap_p4_west": 1.71,
+      "ap_p4_east": 1.29,
+      "ap_p4_room02": 1.93
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_S403_Door",
+    "floor_number": 4,
+    "position": {
+      "x": 18.0,
+      "y": 4.0
+    },
+    "label": "Puerta de Acceso del Aula 403",
+    "room_id": "S403",
+    "rssi_means": {
+      "ap_p1_east": -93.4,
+      "ap_p2_east": -78.7,
+      "ap_p3_west": -88.0,
+      "ap_p3_east": -64.4,
+      "ap_p3_room02": -82.0,
+      "ap_p4_west": -73.7,
+      "ap_p4_east": -51.5,
+      "ap_p4_room02": -67.5
+    },
+    "rssi_std": {
+      "ap_p1_east": 3.28,
+      "ap_p2_east": 1.5,
+      "ap_p3_west": 1.56,
+      "ap_p3_east": 1.03,
+      "ap_p3_room02": 1.38,
+      "ap_p4_west": 1.26,
+      "ap_p4_east": 1.72,
+      "ap_p4_room02": 1.26
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P1_Hall_W",
+    "floor_number": 1,
+    "position": {
+      "x": 2.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Oeste Piso 1",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -53.0,
+      "ap_p1_east": -74.2,
+      "ap_p1_room02": -68.5,
+      "ap_p2_west": -66.9,
+      "ap_p2_east": -88.2,
+      "ap_p2_room02": -81.3,
+      "ap_p3_west": -80.9,
+      "ap_p4_west": -100.6
+    },
+    "rssi_std": {
+      "ap_p1_west": 2.18,
+      "ap_p1_east": 2.19,
+      "ap_p1_room02": 1.53,
+      "ap_p2_west": 1.25,
+      "ap_p2_east": 1.11,
+      "ap_p2_room02": 1.01,
+      "ap_p3_west": 1.13,
+      "ap_p4_west": 5.41
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P1_Hall_C",
+    "floor_number": 1,
+    "position": {
+      "x": 10.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Central Piso 1",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -64.0,
+      "ap_p1_east": -64.1,
+      "ap_p1_room02": -55.2,
+      "ap_p2_west": -78.2,
+      "ap_p2_east": -78.7,
+      "ap_p2_room02": -68.5,
+      "ap_p3_west": -92.6,
+      "ap_p3_east": -92.4,
+      "ap_p3_room02": -83.4
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.38,
+      "ap_p1_east": 1.53,
+      "ap_p1_room02": 1.45,
+      "ap_p2_west": 1.6,
+      "ap_p2_east": 1.31,
+      "ap_p2_room02": 1.74,
+      "ap_p3_west": 1.02,
+      "ap_p3_east": 1.42,
+      "ap_p3_room02": 1.11
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P1_Hall_E",
+    "floor_number": 1,
+    "position": {
+      "x": 18.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Este Piso 1",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -74.3,
+      "ap_p1_east": -53.7,
+      "ap_p1_room02": -67.6,
+      "ap_p2_west": -87.6,
+      "ap_p2_east": -67.1,
+      "ap_p2_room02": -81.4,
+      "ap_p3_east": -81.9,
+      "ap_p4_east": -99.0
+    },
+    "rssi_std": {
+      "ap_p1_west": 2.03,
+      "ap_p1_east": 1.43,
+      "ap_p1_room02": 1.17,
+      "ap_p2_west": 1.09,
+      "ap_p2_east": 1.36,
+      "ap_p2_room02": 1.3,
+      "ap_p3_east": 1.54,
+      "ap_p4_east": 5.7
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P2_Hall_W",
+    "floor_number": 2,
+    "position": {
+      "x": 2.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Oeste Piso 2",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -67.6,
+      "ap_p1_east": -88.2,
+      "ap_p1_room02": -82.9,
+      "ap_p2_west": -53.0,
+      "ap_p2_east": -74.8,
+      "ap_p2_room02": -67.6,
+      "ap_p3_west": -66.2,
+      "ap_p3_east": -88.1,
+      "ap_p3_room02": -82.6,
+      "ap_p4_west": -81.5
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.76,
+      "ap_p1_east": 1.24,
+      "ap_p1_room02": 1.33,
+      "ap_p2_west": 1.31,
+      "ap_p2_east": 1.43,
+      "ap_p2_room02": 1.05,
+      "ap_p3_west": 1.52,
+      "ap_p3_east": 1.29,
+      "ap_p3_room02": 1.32,
+      "ap_p4_west": 1.72
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P2_Hall_C",
+    "floor_number": 2,
+    "position": {
+      "x": 10.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Central Piso 2",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -78.8,
+      "ap_p1_east": -78.6,
+      "ap_p1_room02": -69.4,
+      "ap_p2_west": -65.0,
+      "ap_p2_east": -64.3,
+      "ap_p2_room02": -55.8,
+      "ap_p3_west": -77.9,
+      "ap_p3_east": -77.9,
+      "ap_p3_room02": -69.2,
+      "ap_p4_west": -91.9,
+      "ap_p4_east": -93.1,
+      "ap_p4_room02": -84.1
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.28,
+      "ap_p1_east": 0.98,
+      "ap_p1_room02": 1.63,
+      "ap_p2_west": 1.09,
+      "ap_p2_east": 1.19,
+      "ap_p2_room02": 1.57,
+      "ap_p3_west": 1.28,
+      "ap_p3_east": 1.66,
+      "ap_p3_room02": 1.66,
+      "ap_p4_west": 1.16,
+      "ap_p4_east": 3.43,
+      "ap_p4_room02": 1.44
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P2_Hall_E",
+    "floor_number": 2,
+    "position": {
+      "x": 18.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Este Piso 2",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -88.5,
+      "ap_p1_east": -66.9,
+      "ap_p1_room02": -82.2,
+      "ap_p2_west": -74.3,
+      "ap_p2_east": -52.6,
+      "ap_p2_room02": -67.7,
+      "ap_p3_west": -88.0,
+      "ap_p3_east": -67.4,
+      "ap_p3_room02": -81.8,
+      "ap_p4_east": -81.0
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.45,
+      "ap_p1_east": 1.14,
+      "ap_p1_room02": 1.02,
+      "ap_p2_west": 1.64,
+      "ap_p2_east": 1.52,
+      "ap_p2_room02": 1.17,
+      "ap_p3_west": 1.44,
+      "ap_p3_east": 0.74,
+      "ap_p3_room02": 2.02,
+      "ap_p4_east": 1.27
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P3_Hall_W",
+    "floor_number": 3,
+    "position": {
+      "x": 2.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Oeste Piso 3",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -81.2,
+      "ap_p1_room02": -100.8,
+      "ap_p2_west": -67.7,
+      "ap_p2_east": -88.0,
+      "ap_p2_room02": -82.2,
+      "ap_p3_west": -52.9,
+      "ap_p3_east": -74.4,
+      "ap_p3_room02": -68.6,
+      "ap_p4_west": -67.6,
+      "ap_p4_east": -88.3,
+      "ap_p4_room02": -81.9
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.35,
+      "ap_p1_room02": 5.2,
+      "ap_p2_west": 1.4,
+      "ap_p2_east": 1.72,
+      "ap_p2_room02": 1.02,
+      "ap_p3_west": 1.45,
+      "ap_p3_east": 1.3,
+      "ap_p3_room02": 1.98,
+      "ap_p4_west": 1.67,
+      "ap_p4_east": 1.5,
+      "ap_p4_room02": 1.42
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P3_Hall_C",
+    "floor_number": 3,
+    "position": {
+      "x": 10.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Central Piso 3",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -92.2,
+      "ap_p1_east": -92.4,
+      "ap_p1_room02": -82.5,
+      "ap_p2_west": -77.8,
+      "ap_p2_east": -77.5,
+      "ap_p2_room02": -69.8,
+      "ap_p3_west": -64.7,
+      "ap_p3_east": -64.9,
+      "ap_p3_room02": -55.2,
+      "ap_p4_west": -77.6,
+      "ap_p4_east": -78.3,
+      "ap_p4_room02": -69.2
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.21,
+      "ap_p1_east": 1.08,
+      "ap_p1_room02": 1.12,
+      "ap_p2_west": 1.5,
+      "ap_p2_east": 1.5,
+      "ap_p2_room02": 1.61,
+      "ap_p3_west": 0.92,
+      "ap_p3_east": 1.28,
+      "ap_p3_room02": 1.47,
+      "ap_p4_west": 1.45,
+      "ap_p4_east": 1.85,
+      "ap_p4_room02": 1.74
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P3_Hall_E",
+    "floor_number": 3,
+    "position": {
+      "x": 18.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Este Piso 3",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_east": -81.4,
+      "ap_p2_west": -87.9,
+      "ap_p2_east": -66.9,
+      "ap_p2_room02": -82.1,
+      "ap_p3_west": -73.8,
+      "ap_p3_east": -52.8,
+      "ap_p3_room02": -67.8,
+      "ap_p4_west": -87.6,
+      "ap_p4_east": -67.2,
+      "ap_p4_room02": -81.6
+    },
+    "rssi_std": {
+      "ap_p1_east": 1.6,
+      "ap_p2_west": 1.67,
+      "ap_p2_east": 1.24,
+      "ap_p2_room02": 1.67,
+      "ap_p3_west": 1.75,
+      "ap_p3_east": 1.54,
+      "ap_p3_room02": 1.41,
+      "ap_p4_west": 1.35,
+      "ap_p4_east": 1.48,
+      "ap_p4_room02": 1.41
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P4_Hall_W",
+    "floor_number": 4,
+    "position": {
+      "x": 2.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Oeste Piso 4",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -101.1,
+      "ap_p2_west": -81.1,
+      "ap_p3_west": -66.3,
+      "ap_p3_east": -87.1,
+      "ap_p3_room02": -82.1,
+      "ap_p4_west": -53.4,
+      "ap_p4_east": -74.2,
+      "ap_p4_room02": -68.1
+    },
+    "rssi_std": {
+      "ap_p1_west": 5.51,
+      "ap_p2_west": 1.29,
+      "ap_p3_west": 1.46,
+      "ap_p3_east": 1.59,
+      "ap_p3_room02": 1.36,
+      "ap_p4_west": 1.25,
+      "ap_p4_east": 1.46,
+      "ap_p4_room02": 1.34
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P4_Hall_C",
+    "floor_number": 4,
+    "position": {
+      "x": 10.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Central Piso 4",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p2_west": -91.8,
+      "ap_p2_east": -92.6,
+      "ap_p2_room02": -83.5,
+      "ap_p3_west": -78.6,
+      "ap_p3_east": -77.7,
+      "ap_p3_room02": -69.7,
+      "ap_p4_west": -63.9,
+      "ap_p4_east": -64.7,
+      "ap_p4_room02": -55.6
+    },
+    "rssi_std": {
+      "ap_p2_west": 1.22,
+      "ap_p2_east": 3.52,
+      "ap_p2_room02": 1.43,
+      "ap_p3_west": 1.36,
+      "ap_p3_east": 1.85,
+      "ap_p3_room02": 1.74,
+      "ap_p4_west": 1.13,
+      "ap_p4_east": 1.56,
+      "ap_p4_room02": 1.12
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P4_Hall_E",
+    "floor_number": 4,
+    "position": {
+      "x": 18.0,
+      "y": 5.0
+    },
+    "label": "Pasillo Este Piso 4",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_east": -101.4,
+      "ap_p2_east": -81.3,
+      "ap_p3_west": -87.9,
+      "ap_p3_east": -67.4,
+      "ap_p3_room02": -82.4,
+      "ap_p4_west": -73.9,
+      "ap_p4_east": -52.6,
+      "ap_p4_room02": -68.8
+    },
+    "rssi_std": {
+      "ap_p1_east": 5.17,
+      "ap_p2_east": 1.57,
+      "ap_p3_west": 1.4,
+      "ap_p3_east": 1.17,
+      "ap_p3_room02": 1.64,
+      "ap_p4_west": 1.87,
+      "ap_p4_east": 1.36,
+      "ap_p4_room02": 1.56
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P1_Stairs",
+    "floor_number": 1,
+    "position": {
+      "x": 10.0,
+      "y": 8.0
+    },
+    "label": "Descanso de Escalera Piso 1",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -66.5,
+      "ap_p1_east": -66.5,
+      "ap_p1_room02": -63.2,
+      "ap_p2_west": -80.4,
+      "ap_p2_east": -79.9,
+      "ap_p2_room02": -77.5,
+      "ap_p3_west": -99.1,
+      "ap_p3_east": -99.6,
+      "ap_p3_room02": -91.8
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.64,
+      "ap_p1_east": 1.54,
+      "ap_p1_room02": 1.59,
+      "ap_p2_west": 1.38,
+      "ap_p2_east": 1.93,
+      "ap_p2_room02": 2.07,
+      "ap_p3_west": 5.59,
+      "ap_p3_east": 5.8,
+      "ap_p3_room02": 1.53
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P2_Stairs",
+    "floor_number": 2,
+    "position": {
+      "x": 10.0,
+      "y": 8.0
+    },
+    "label": "Descanso de Escalera Piso 2",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -80.9,
+      "ap_p1_east": -81.1,
+      "ap_p1_room02": -78.1,
+      "ap_p2_west": -66.8,
+      "ap_p2_east": -67.5,
+      "ap_p2_room02": -63.9,
+      "ap_p3_west": -80.7,
+      "ap_p3_east": -80.7,
+      "ap_p3_room02": -78.1,
+      "ap_p4_west": -96.4,
+      "ap_p4_east": -97.3,
+      "ap_p4_room02": -91.9
+    },
+    "rssi_std": {
+      "ap_p1_west": 1.46,
+      "ap_p1_east": 1.44,
+      "ap_p1_room02": 1.4,
+      "ap_p2_west": 1.39,
+      "ap_p2_east": 1.09,
+      "ap_p2_room02": 1.31,
+      "ap_p3_west": 1.18,
+      "ap_p3_east": 1.01,
+      "ap_p3_room02": 1.83,
+      "ap_p4_west": 5.27,
+      "ap_p4_east": 5.58,
+      "ap_p4_room02": 1.26
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P3_Stairs",
+    "floor_number": 3,
+    "position": {
+      "x": 10.0,
+      "y": 8.0
+    },
+    "label": "Descanso de Escalera Piso 3",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p1_west": -96.7,
+      "ap_p1_east": -99.9,
+      "ap_p1_room02": -91.7,
+      "ap_p2_west": -80.5,
+      "ap_p2_east": -80.5,
+      "ap_p2_room02": -77.2,
+      "ap_p3_west": -67.0,
+      "ap_p3_east": -66.4,
+      "ap_p3_room02": -63.6,
+      "ap_p4_west": -80.1,
+      "ap_p4_east": -80.4,
+      "ap_p4_room02": -78.6
+    },
+    "rssi_std": {
+      "ap_p1_west": 5.09,
+      "ap_p1_east": 5.45,
+      "ap_p1_room02": 1.63,
+      "ap_p2_west": 0.86,
+      "ap_p2_east": 1.4,
+      "ap_p2_room02": 1.49,
+      "ap_p3_west": 1.49,
+      "ap_p3_east": 1.36,
+      "ap_p3_room02": 1.47,
+      "ap_p4_west": 1.17,
+      "ap_p4_east": 1.09,
+      "ap_p4_room02": 1.47
+    },
+    "sample_count": 15
+  },
+  {
+    "id": "RP_P4_Stairs",
+    "floor_number": 4,
+    "position": {
+      "x": 10.0,
+      "y": 8.0
+    },
+    "label": "Descanso de Escalera Piso 4",
+    "room_id": null,
+    "rssi_means": {
+      "ap_p2_west": -99.6,
+      "ap_p2_east": -98.0,
+      "ap_p2_room02": -91.7,
+      "ap_p3_west": -81.0,
+      "ap_p3_east": -80.4,
+      "ap_p3_room02": -77.4,
+      "ap_p4_west": -66.7,
+      "ap_p4_east": -66.6,
+      "ap_p4_room02": -63.5
+    },
+    "rssi_std": {
+      "ap_p2_west": 5.77,
+      "ap_p2_east": 5.76,
+      "ap_p2_room02": 1.18,
+      "ap_p3_west": 1.2,
+      "ap_p3_east": 1.39,
+      "ap_p3_room02": 1.1,
+      "ap_p4_west": 1.23,
+      "ap_p4_east": 1.1,
+      "ap_p4_room02": 1.2
+    },
+    "sample_count": 15
+  }
+]

@@ -11,7 +11,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, FileResponse
 
 from .config import config
-from .domain.graph import create_default_school_graph
+from .domain.building import Point2D
+from .domain.graph import create_default_school_graph, infer_room_id
 from .repositories.radio_map_repo import InMemoryRadioMapRepository
 from .repositories.attendance_repo import InMemoryAttendanceRepository
 from .repositories.device_repo import DeviceRegistry
@@ -60,18 +61,68 @@ class ApplicationState:
         self.mobile_kalman_filters: dict = {}
         self.mobile_trajectory_filters: dict = {}
 
+    def sync_room_position(self, room_id: str, center: Point2D = None, entrance: Point2D = None) -> bool:
+        """Actualiza las coordenadas de un salón en el grafo topológico y en la jerarquía de pisos."""
+        updated = False
+        if center is not None:
+            if self.graph.update_node_position(room_id, center):
+                updated = True
+
+        for fl in self.floors.values():
+            for r in fl.rooms:
+                if r.id == room_id:
+                    if center is not None:
+                        r.center = center
+                        updated = True
+                    if entrance is not None:
+                        r.entrance = entrance
+                        updated = True
+        return updated
+
+    def sync_room_positions_from_radio_map(self) -> int:
+        """Sincroniza las coordenadas de salones con los puntos de referencia calibrados en el radio-mapa."""
+        entries = self.radio_map_repo.get_all_entries()
+        synced_count = 0
+        modified_entries = False
+        for entry in entries:
+            rp = entry.reference_point
+            r_id = rp.room_id or infer_room_id(rp.id, rp.floor_number, rp.label)
+            if not r_id or r_id not in self.graph.nodes:
+                continue
+
+            if rp.room_id is None:
+                rp.room_id = r_id
+                modified_entries = True
+
+            label_lower = (rp.label + " " + rp.id).lower()
+            is_door = "puerta" in label_lower or "door" in label_lower or "entrada" in label_lower
+
+            if is_door:
+                self.sync_room_position(r_id, entrance=rp.position)
+            else:
+                self.sync_room_position(r_id, center=rp.position)
+            synced_count += 1
+
+        if modified_entries and hasattr(self.radio_map_repo, "save_to_file") and getattr(self.radio_map_repo, "storage_path", None):
+            self.radio_map_repo.save_to_file(self.radio_map_repo.storage_path)
+
+        return synced_count
+
 # Instancia global del estado de la aplicación
 app_state = ApplicationState()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     calibrated_points = len(app_state.radio_map_repo.get_all_entries())
+    synced_rooms = app_state.sync_room_positions_from_radio_map()
 
     logger.info("=======================================================")
     logger.info(" INICIANDO CEREBRO IPS (4 PISOS, 12 SALONES, WEBSOCKETS)")
     logger.info(f" Nodos en Grafo: {len(app_state.graph.nodes)}")
     logger.info(f" Salones Registrados: {sum(len(f.rooms) for f in app_state.floors.values())}")
     logger.info(f" Puntos de Referencia Calibrados: {calibrated_points}")
+    if synced_rooms > 0:
+        logger.info(f" Salones Sincronizados con Radio-Mapa: {synced_rooms}")
     logger.info(f" Radio-Mapa: {config.server.radio_map_file}")
     if config.security.requires_token:
         logger.info(" Operaciones destructivas: requieren cabecera X-Admin-Token")

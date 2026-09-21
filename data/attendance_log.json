@@ -95,9 +95,9 @@
     "student_name": "Diego Ramos (Demo Player)",
     "room_id": "S302",
     "status": "ABSENT",
-    "last_seen": 0.0,
+    "last_seen": 1789756214.702326,
     "confirmed_at": null,
-    "last_rssi": null,
+    "last_rssi": -95.0,
     "samples_in_window": 0,
     "dwell_seconds": 0.0,
     "rssi_is_measured": false,
@@ -154,5 +154,61 @@
     "dwell_seconds": 0.0,
     "rssi_is_measured": false,
     "window_sample_times": []
+  },
+  {
+    "student_id": "Barbayan",
+    "student_name": "Alumno Barbayan",
+    "room_id": "S304",
+    "status": "ABSENT",
+    "last_seen": 0.0,
+    "confirmed_at": null,
+    "last_rssi": null,
+    "samples_in_window": 0,
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
+  },
+  {
+    "student_id": "Barbayanee",
+    "student_name": "Alumno Barbayanee",
+    "room_id": "S302",
+    "status": "ABSENT",
+    "last_seen": 1789754668.6198277,
+    "confirmed_at": null,
+    "last_rssi": -124.0,
+    "samples_in_window": 0,
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
+  },
+  {
+    "student_id": "Barbayanee",
+    "student_name": "Alumno Barbayanee",
+    "room_id": "S303",
+    "status": "ABSENT",
+    "last_seen": 1789754709.3543618,
+    "confirmed_at": null,
+    "last_rssi": -190.0,
+    "samples_in_window": 0,
+    "dwell_seconds": 0.0,
+    "rssi_is_measured": false,
+    "window_sample_times": []
+  },
+  {
+    "student_id": "tempy",
+    "student_name": "Alumno tempy",
+    "room_id": "S101",
+    "status": "PRESENT_CONFIRMED",
+    "last_seen": 1789756273.5958893,
+    "confirmed_at": 1789756223.7257564,
+    "last_rssi": -44.2,
+    "samples_in_window": 3,
+    "dwell_seconds": 6.2,
+    "rssi_is_measured": false,
+    "window_sample_times": [
+      1789756217.5658221,
+      1789756220.6186419,
+      1789756223.7257564
+    ]
   }
 ]

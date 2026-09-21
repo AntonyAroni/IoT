@@ -45,6 +45,8 @@ class RadioMapEntry:
         return {
             "id": self.reference_point.id,
             "floor_number": self.reference_point.floor_number,
+            "x": self.reference_point.position.x,
+            "y": self.reference_point.position.y,
             "position": {"x": self.reference_point.position.x, "y": self.reference_point.position.y},
             "label": self.reference_point.label,
             "room_id": self.reference_point.room_id,
@@ -55,7 +57,10 @@ class RadioMapEntry:
 
     @classmethod
     def from_dict(cls, data: dict) -> "RadioMapEntry":
-        pos = Point2D(x=data["position"]["x"], y=data["position"]["y"])
+        if "position" in data and isinstance(data["position"], dict):
+            pos = Point2D(x=data["position"]["x"], y=data["position"]["y"])
+        else:
+            pos = Point2D(x=data.get("x", 0.0), y=data.get("y", 0.0))
         rp = ReferencePoint(
             id=data["id"],
             floor_number=data["floor_number"],

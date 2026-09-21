@@ -19,6 +19,14 @@ class IRadioMapRepository(Protocol):
         """Obtiene huellas correspondientes a un piso específico."""
         ...
 
+    def get_by_id(self, rp_id: str) -> Optional[RadioMapEntry]:
+        """Obtiene una huella por el ID del punto de referencia."""
+        ...
+
+    def delete_entry(self, rp_id: str) -> bool:
+        """Elimina una huella por su ID. Devuelve True si existía y se eliminó."""
+        ...
+
     def clear(self) -> None:
         """Limpia el radio-mapa en memoria."""
         ...
