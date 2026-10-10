@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse, FileResponse
 
 from .config import config
-from .domain.graph import create_default_school_graph
+from .domain.building_models import create_building_graph
 from .repositories.radio_map_repo import InMemoryRadioMapRepository
 from .repositories.attendance_repo import InMemoryAttendanceRepository
 from .repositories.device_repo import DeviceRegistry
@@ -41,8 +41,9 @@ logger = logging.getLogger("ips.main")
 class ApplicationState:
     """Contenedor de estado e inyección de dependencias."""
     def __init__(self):
-        # 1. Topología del Edificio y Grafo de 4 pisos
-        self.graph, self.floors = create_default_school_graph()
+        # 1. Topología del Edificio y Grafo de 4 pisos (modelo según IPS_BUILDING_MODEL)
+        self.graph, self.floors = create_building_graph(config.server.building_model)
+        logger.info(f"Modelo de edificio: {config.server.building_model}")
 
         # 2. Repositorios de Persistencia
         self.radio_map_repo = InMemoryRadioMapRepository(config.server.radio_map_file)

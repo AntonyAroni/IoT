@@ -172,6 +172,11 @@ class ServerConfig:
     radio_map_file: str = field(
         default_factory=lambda: _resolve_data_path("IPS_RADIO_MAP_PATH", "data/radio_map.json")
     )
+    # Topología del edificio: "sintetico" (va con data/radio_map.json) o "epcc" (el pabellón
+    # real, para usar con un radio-mapa medido en campo). Ver backend/domain/building_models.py.
+    building_model: str = field(
+        default_factory=lambda: os.environ.get("IPS_BUILDING_MODEL", "sintetico").strip().lower()
+    )
     device_registry_file: str = field(
         default_factory=lambda: _resolve_data_path("IPS_DEVICE_REGISTRY_PATH", "data/devices.json")
     )

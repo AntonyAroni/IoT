@@ -58,6 +58,24 @@ class NavigationEngine:
         closest = min(candidates, key=lambda n: n.position.distance_to(position))
         return closest.id
 
+    def _stair_name(self, floor_number: int, path_ids: List[str]) -> str:
+        """
+        Nombre de la escalera hacia la que guiar. Con una sola escalera en el piso basta con
+        "escalera central"; con varias (el pabellón real tiene dos) hay que decir cuál eligió
+        Dijkstra, o la instrucción manda al alumno en la dirección equivocada.
+        """
+        stairs_on_floor = [
+            n for n in self.graph.nodes.values()
+            if n.floor_number == floor_number and n.node_type == NodeType.STAIRCASE
+        ]
+        if len(stairs_on_floor) <= 1:
+            return "escalera central"
+        for node_id in path_ids:
+            node = self.graph.get_node(node_id)
+            if node and node.node_type == NodeType.STAIRCASE and node.floor_number == floor_number:
+                return node.label.lower()
+        return "escalera más cercana"
+
     def compute_route(
         self,
         current_floor: int,
@@ -99,7 +117,8 @@ class NavigationEngine:
             active_clue = f"🎉 ¡Has llegado al {target_node.label}! Registrando tu asistencia en la estación..."
         elif current_floor < target_floor:
             diff = target_floor - current_floor
-            active_clue = f"🚶‍♂️ Estás en el Piso {current_floor}. Dirígete a la escalera central y sube {diff} nivel(es) al Piso {target_floor}."
+            stair_name = self._stair_name(current_floor, path_ids)
+            active_clue = f"🚶‍♂️ Estás en el Piso {current_floor}. Dirígete a la {stair_name} y sube {diff} nivel(es) al Piso {target_floor}."
         elif current_floor > target_floor:
             diff = current_floor - target_floor
             active_clue = f"🚶‍♂️ Estás en el Piso {current_floor}. Baja por la escalera {diff} nivel(es) al Piso {target_floor}."
