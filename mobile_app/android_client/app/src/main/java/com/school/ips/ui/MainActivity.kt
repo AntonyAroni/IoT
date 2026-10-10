@@ -257,6 +257,7 @@ class MainActivity : AppCompatActivity() {
                     x = posX,
                     y = posY,
                     label = "Punto Calibrado $rpId (${posX}m, ${posY}m)",
+                    roomId = currentTargetRoomId.ifEmpty { null },
                     adminToken = adminToken
                 )
                 if (result.isSuccess) {

@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Dict, List, Optional, Tuple, Set
 import heapq
 import math
+import re
 from .building import Point2D, Room, Staircase, Floor
 
 class NodeType(str, Enum):
@@ -60,6 +61,24 @@ class BuildingGraph:
 
     def get_node(self, node_id: str) -> Optional[GraphNode]:
         return self.nodes.get(node_id)
+
+    def update_node_position(self, node_id: str, new_position: Point2D) -> bool:
+        """Actualiza la posición métrica de un nodo y recalcula las distancias de las aristas conectadas."""
+        if node_id not in self.nodes:
+            return False
+        self.nodes[node_id].position = new_position
+
+        # Recalcular distancias salientes no verticales
+        for edge in self.adjacency.get(node_id, []):
+            if not edge.is_vertical and edge.target_id in self.nodes:
+                edge.distance_meters = round(new_position.distance_to(self.nodes[edge.target_id].position), 2)
+
+        # Recalcular distancias entrantes no verticales
+        for from_id, edges in self.adjacency.items():
+            for edge in edges:
+                if edge.target_id == node_id and not edge.is_vertical:
+                    edge.distance_meters = round(self.nodes[from_id].position.distance_to(new_position), 2)
+        return True
 
     def find_shortest_path(self, start_id: str, goal_id: str) -> Tuple[List[str], float]:
         """
@@ -211,3 +230,24 @@ def create_default_school_graph() -> Tuple[BuildingGraph, Dict[int, Floor]]:
         graph.add_edge(stair_from, stair_to, distance_meters=6.0, bidirectional=True, is_vertical=True)
 
     return graph, floors
+
+def infer_room_id(rp_id: str, floor_number: Optional[int] = None, label: str = "") -> Optional[str]:
+    """Infiere el ID canónico de aula (ej. S303, S302) a partir del ID del RP o de su etiqueta."""
+    text = f"{rp_id} {label}".upper()
+    # Coincidencia directa con formato S303, S101
+    m = re.search(r'\bS([1-4]0[1-3])\b', text)
+    if m:
+        return f"S{m.group(1)}"
+    # Coincidencia con número de salón de 3 dígitos (ej. 303, 302, 101)
+    m2 = re.search(r'\b([1-4]0[1-3])\b', text)
+    if m2:
+        return f"S{m2.group(1)}"
+    # Coincidencia con subpatrón como P3_303 o RP_P3_303
+    m3 = re.search(r'(?:P|PISO\s*)?([1-4])_?0?([1-3])', text)
+    if m3:
+        return f"S{m3.group(1)}0{m3.group(2)}"
+    if floor_number and 1 <= floor_number <= 4:
+        m4 = re.search(r'\b0?([1-3])\b', rp_id)
+        if m4:
+            return f"S{floor_number}0{m4.group(1)}"
+    return None

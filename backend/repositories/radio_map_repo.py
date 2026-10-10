@@ -32,8 +32,20 @@ class InMemoryRadioMapRepository(IRadioMapRepository):
     def get_by_id(self, rp_id: str) -> Optional[RadioMapEntry]:
         return self._entries.get(rp_id)
 
+    get_entry = get_by_id
+
+    def delete_entry(self, rp_id: str) -> bool:
+        if rp_id in self._entries:
+            del self._entries[rp_id]
+            if self.storage_path:
+                self.save_to_file(self.storage_path)
+            return True
+        return False
+
     def clear(self) -> None:
         self._entries.clear()
+        if self.storage_path:
+            self.save_to_file(self.storage_path)
 
     def load_from_file(self, filepath: str) -> None:
         if not os.path.exists(filepath):

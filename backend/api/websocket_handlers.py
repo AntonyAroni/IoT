@@ -118,9 +118,20 @@ async def ws_laptop_station(websocket: WebSocket, room_id: str):
     try:
         # Enviar estado inicial del aula al conectarse
         records = attendance_repo.get_room_records(room_id)
+        node = app_state.graph.get_node(room_id)
+        room_pos = {"x": node.position.x, "y": node.position.y} if node else None
+        entrance_pos = None
+        for fl in app_state.floors.values():
+            for r in fl.rooms:
+                if r.id == room_id:
+                    entrance_pos = {"x": r.entrance.x, "y": r.entrance.y}
+                    break
+
         await websocket.send_text(json.dumps({
             "event": "initial_state",
             "room_id": room_id,
+            "room_position": room_pos,
+            "entrance_position": entrance_pos,
             "timestamp": time.time(),
             "records": [r.to_dict() for r in records]
         }))
