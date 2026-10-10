@@ -20,18 +20,34 @@ class CalibratorManager(
 ) {
     private val collectedSamples = mutableListOf<List<WifiReading>>()
     private val targetSampleCount = 15
+    private var lastAcceptedScanUs = 0L
 
-    fun addSample(readings: List<WifiReading>): Int {
+    /** Resultado de intentar añadir una muestra: si entró y cuántas van acumuladas. */
+    data class SampleOutcome(val accepted: Boolean, val count: Int)
+
+    /**
+     * Acumula una ráfaga solo si procede de un escaneo distinto al anterior.
+     *
+     * Con la limitación de escaneos de Android activa, pulsar el botón 15 veces seguidas
+     * guardaba 15 copias de la misma medición: la huella parecía tener desviación típica casi
+     * nula y el radio-mapa quedaba con una confianza que no se corresponde con la realidad.
+     */
+    fun addSample(readings: List<WifiReading>, scanTimestampUs: Long): SampleOutcome {
+        if (scanTimestampUs != 0L && scanTimestampUs == lastAcceptedScanUs) {
+            return SampleOutcome(accepted = false, count = collectedSamples.size)
+        }
         if (collectedSamples.size < targetSampleCount) {
             collectedSamples.add(readings)
+            lastAcceptedScanUs = scanTimestampUs
         }
-        return collectedSamples.size
+        return SampleOutcome(accepted = true, count = collectedSamples.size)
     }
 
     fun isReadyToUpload(): Boolean = collectedSamples.size >= targetSampleCount
 
     fun reset() {
         collectedSamples.clear()
+        lastAcceptedScanUs = 0L
     }
 
     suspend fun uploadCalibrationPoint(
@@ -40,7 +56,8 @@ class CalibratorManager(
         x: Float,
         y: Float,
         label: String,
-        roomId: String? = null
+        roomId: String? = null,
+        adminToken: String = ""
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             // Calcular estadísticas (Media y Desviación Estándar por BSSID).
@@ -106,6 +123,12 @@ class CalibratorManager(
             val conn = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 setRequestProperty("Content-Type", "application/json")
+                // Escribir en el radio-mapa es una operación de administración: desde la red
+                // solo se acepta con este token. Sin él, el servidor únicamente atiende a
+                // peticiones de la propia máquina y la subida se rechaza con 403.
+                if (adminToken.isNotEmpty()) {
+                    setRequestProperty("X-Admin-Token", adminToken)
+                }
                 doOutput = true
                 connectTimeout = 5000
                 readTimeout = 5000
@@ -120,6 +143,11 @@ class CalibratorManager(
             if (responseCode in 200..299) {
                 reset()
                 Result.success("Punto $rpId calibrado y guardado exitosamente.")
+            } else if (responseCode == 401 || responseCode == 403) {
+                Result.failure(Exception(
+                    "El servidor rechazó la subida (HTTP $responseCode). Revisa el token de " +
+                        "administrador: debe coincidir con IPS_ADMIN_TOKEN del servidor."
+                ))
             } else {
                 Result.failure(Exception("Error en servidor: HTTP $responseCode"))
             }

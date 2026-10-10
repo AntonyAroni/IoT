@@ -255,6 +255,16 @@
                     android:layout_marginStart="8dp" />
             </LinearLayout>
 
+            <EditText
+                android:id="@+id/etAdminToken"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Token de administrador (IPS_ADMIN_TOKEN)"
+                android:inputType="textPassword"
+                android:textColor="#ffffff"
+                android:textColorHint="#9ca3af"
+                android:layout_marginTop="8dp" />
+
             <TextView
                 android:id="@+id/tvSampleCounter"
                 android:layout_width="wrap_content"

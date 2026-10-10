@@ -25,7 +25,13 @@ data class WifiReading(
  */
 class WifiScannerService(
     private val context: Context,
-    private val onScanCompleted: (List<WifiReading>) -> Unit
+    /**
+     * Recibe la ráfaga y la marca de tiempo del escaneo del sistema (microsegundos desde el
+     * arranque). Android limita los escaneos a 4 cada 2 minutos: cuando deniega uno, seguimos
+     * leyendo `scanResults`, que devuelve la ráfaga anterior en caché. La marca de tiempo es
+     * lo único que distingue una medición nueva de una repetida.
+     */
+    private val onScanCompleted: (List<WifiReading>, Long) -> Unit
 ) {
     private val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private val handler = Handler(Looper.getMainLooper())
@@ -99,7 +105,10 @@ class WifiScannerService(
                     frequency = result.frequency
                 )
             }
-            onScanCompleted(readings)
+            // Cada ScanResult trae cuándo se vio ese AP por última vez; la más reciente de la
+            // ráfaga identifica el escaneo al que pertenece.
+            val scanTimestampUs = rawResults.maxOfOrNull { it.timestamp } ?: 0L
+            onScanCompleted(readings, scanTimestampUs)
         } catch (e: SecurityException) {
             Log.e("WifiScanner", "Error leyendo scanResults: ${e.message}")
         }

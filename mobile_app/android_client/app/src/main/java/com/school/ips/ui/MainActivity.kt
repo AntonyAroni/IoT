@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnUploadCalibration: Button
     private lateinit var tvSampleCounter: TextView
     private lateinit var etRpId: EditText
+    private lateinit var etAdminToken: EditText
     private lateinit var etCoordX: EditText
     private lateinit var etCoordY: EditText
     private lateinit var spinnerFloor: Spinner
@@ -75,6 +76,8 @@ class MainActivity : AppCompatActivity() {
 
     // Buffer de últimas lecturas Wi-Fi recibidas
     private var latestWifiReadings: List<WifiReading> = emptyList()
+    // Marca de tiempo del escaneo del sistema al que pertenece `latestWifiReadings`.
+    private var latestScanTimestampUs: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,6 +122,8 @@ class MainActivity : AppCompatActivity() {
         btnUploadCalibration = findViewById(R.id.btnUploadCalibration)
         tvSampleCounter = findViewById(R.id.tvSampleCounter)
         etRpId = findViewById(R.id.etRpId)
+        etAdminToken = findViewById(R.id.etAdminToken)
+        etAdminToken.setText(prefs.getString("admin_token", "") ?: "")
         etCoordX = findViewById(R.id.etCoordX)
         etCoordY = findViewById(R.id.etCoordY)
         spinnerFloor = findViewById(R.id.spinnerFloor)
@@ -157,8 +162,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initServices() {
-        wifiScanner = WifiScannerService(this) { readings ->
+        wifiScanner = WifiScannerService(this) { readings, scanTimestampUs ->
             latestWifiReadings = readings
+            latestScanTimestampUs = scanTimestampUs
             val readingsMap = readings.associate { it.bssid to it.rssi.toDouble() }
 
             // Potencia del AP del aula destino. Sin este dato el servidor deriva el RSSI de la
@@ -177,7 +183,26 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Escaneando redes Wi-Fi... espera un momento e intenta de nuevo.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val count = calibrator?.addSample(latestWifiReadings) ?: 0
+            val outcome = calibrator?.addSample(latestWifiReadings, latestScanTimestampUs)
+            if (outcome == null) {
+                Toast.makeText(this, "Servicio de calibración no inicializado", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Una muestra rechazada significa que Android no ha hecho un escaneo nuevo todavía.
+            // Guardarla igualmente duplicaría la medición anterior y falsearía la huella.
+            if (!outcome.accepted) {
+                Toast.makeText(
+                    this,
+                    "Aún es la misma medición: Android no ha vuelto a escanear. Espera unos " +
+                        "segundos. Si tarda siempre ~30 s, desactiva la limitación de búsqueda " +
+                        "de Wi-Fi en Opciones de desarrollador.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
+            val count = outcome.count
             tvSampleCounter.text = "Muestras recolectadas: $count / 15"
             if (count >= 15) {
                 Toast.makeText(this, "¡15 muestras listas! Ya puedes presionar 'Enviar Huella'.", Toast.LENGTH_LONG).show()
@@ -222,19 +247,23 @@ class MainActivity : AppCompatActivity() {
             val posX = etCoordX.text.toString().trim().toFloatOrNull() ?: 10.0f
             val posY = etCoordY.text.toString().trim().toFloatOrNull() ?: 2.0f
 
+            val adminToken = etAdminToken.text.toString().trim()
+            prefs.edit().putString("admin_token", adminToken).apply()
+
             CoroutineScope(Dispatchers.Main).launch {
                 val result = cal.uploadCalibrationPoint(
                     rpId = rpId,
                     floorNumber = floor,
                     x = posX,
                     y = posY,
-                    label = "Punto Calibrado $rpId (${posX}m, ${posY}m)"
+                    label = "Punto Calibrado $rpId (${posX}m, ${posY}m)",
+                    adminToken = adminToken
                 )
                 if (result.isSuccess) {
                     tvSampleCounter.text = "Muestras recolectadas: 0 / 15"
                     Toast.makeText(this@MainActivity, "✅ Calibración guardada en servidor ($posX m, $posY m)", Toast.LENGTH_LONG).show()
                 } else {
-                    Toast.makeText(this@MainActivity, "❌ Error al subir: ${result.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "❌ Error al subir: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
