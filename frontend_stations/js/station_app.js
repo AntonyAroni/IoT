@@ -5,6 +5,11 @@ import { RadarWidget } from './radar_widget.js';
 import { StationWebSocketClient } from './ws_client.js';
 import { audioService } from './audio_service.js';
 
+// Un móvil activo envía un escaneo cada ~1,5 s (o cada ~30 s si Android limita los escaneos).
+// Pasado este margen sin lecturas se considera que el alumno ya no está emitiendo.
+const SIGNAL_TIMEOUT_MS = 45000;
+const SIGNAL_REFRESH_MS = 2000;
+
 class StationDashboardApp {
   constructor() {
     this.currentRoom = this._getRoomFromUrl() || 'S302';
@@ -15,6 +20,9 @@ class StationDashboardApp {
     this._initElements();
     this._bindEvents();
     this._initDashboard();
+
+    // La señal caduca sola aunque no llegue ningún evento, así que hay que repintar por reloj.
+    setInterval(() => { if (this.records.size > 0) this._renderTable(); }, SIGNAL_REFRESH_MS);
   }
 
   _getRoomFromUrl() {
@@ -124,15 +132,22 @@ class StationDashboardApp {
 
   handleMessage(msg) {
     if (msg.event === 'initial_state') {
-      this._loadInitialState(msg.records || []);
+      this._loadInitialState(msg.records || [], msg.timestamp);
     } else if (msg.event === 'student_proximity') {
       this._processProximityEvent(msg);
     }
   }
 
-  _loadInitialState(records) {
+  _loadInitialState(records, serverNow) {
     this.records.clear();
-    records.forEach(r => this.records.set(r.student_id, r));
+    records.forEach(r => {
+      // last_seen y serverNow son ambos hora del servidor: su diferencia es la antigüedad real
+      // de la última lectura, sin depender de que el reloj de esta laptop esté sincronizado.
+      r._receivedAt = (r.last_seen && serverNow)
+        ? Date.now() - Math.max(0, serverNow - r.last_seen) * 1000
+        : null;
+      this.records.set(r.student_id, r);
+    });
     this._renderTable();
     this._updateMetrics();
     this.logAudit(`📋 Padrón cargado: ${records.length} alumnos matriculados en ${this.currentRoom}.`);
@@ -156,6 +171,9 @@ class StationDashboardApp {
     }
 
     const prevStatus = rec.status;
+    // El timestamp del evento viene del reloj del móvil; para medir la frescura de la señal
+    // se usa la hora de recepción en esta laptop.
+    rec._receivedAt = Date.now();
     rec.status = data.status;
     rec.last_seen = data.timestamp;
     rec.last_rssi = data.rssi;
@@ -235,11 +253,20 @@ class StationDashboardApp {
     this.tableBody.replaceChildren();
     const tr = document.createElement('tr');
     const td = document.createElement('td');
-    td.colSpan = 5;
+    td.colSpan = 6;
     td.setAttribute('style', 'text-align: center; color: #9ca3af;');
     td.textContent = message;
     tr.appendChild(td);
     this.tableBody.appendChild(tr);
+  }
+
+  _signalAgeSeconds(r) {
+    return r._receivedAt ? Math.round((Date.now() - r._receivedAt) / 1000) : null;
+  }
+
+  _hasLiveSignal(r) {
+    return r._receivedAt !== null && r._receivedAt !== undefined
+      && (Date.now() - r._receivedAt) < SIGNAL_TIMEOUT_MS;
   }
 
   _renderTable() {
@@ -251,8 +278,16 @@ class StationDashboardApp {
     const fragment = document.createDocumentFragment();
 
     this.records.forEach(r => {
+      const live = this._hasLiveSignal(r);
       let badgeClass = 'tag-absent';
       let badgeLabel = 'Ausente';
+
+      // ABSENT agrupa dos situaciones que el docente necesita distinguir: el móvil no emite,
+      // o emite pero el sistema lo ubica lejos del aula.
+      if (r.status === 'ABSENT' && live) {
+        badgeClass = 'tag-out-of-range';
+        badgeLabel = 'Fuera de rango';
+      }
 
       if (r.status === 'APPROACHING') {
         badgeClass = 'tag-approaching';
@@ -282,6 +317,11 @@ class StationDashboardApp {
       tr.appendChild(this._buildCell(r.student_id, { bold: true }));
       tr.appendChild(this._buildCell(r.student_name));
       tr.appendChild(this._buildCell(badgeLabel, { className: `status-tag ${badgeClass}` }));
+      const age = this._signalAgeSeconds(r);
+      tr.appendChild(this._buildCell(
+        live ? `● En línea (hace ${age} s)` : (age !== null ? '○ Sin señal' : '○ Nunca conectado'),
+        { className: live ? 'signal signal-live' : 'signal signal-lost' }
+      ));
       tr.appendChild(this._buildCell(rssiStr, { style: 'font-family: monospace; color: #38bdf8;' }));
       tr.appendChild(this._buildCell(timeStr, { style: 'color: #9ca3af;' }));
       fragment.appendChild(tr);
