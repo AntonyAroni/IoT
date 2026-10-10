@@ -72,3 +72,13 @@ data/devices.json
 # pero la asistencia real de una sesión no debe commitearse. Si tras ejecutar el demo o el
 # servidor aparece modificado, restaurar con: git checkout -- data/attendance_log.json
 data/devices.json
+
+# Documentos de entrega y material de trabajo local (fuera del repositorio)
+trabajo_final_informe/
+trabajo_final_informe.zip
+WhatsApp Image *.jpeg
+
+# Copias de seguridad y bloqueos de AutoCAD
+*.bak
+*.dwl
+*.dwl2
