@@ -231,23 +231,54 @@ def create_default_school_graph() -> Tuple[BuildingGraph, Dict[int, Floor]]:
 
     return graph, floors
 
+# Código de aula completo (101..403) que no forme parte de un número más largo. El guion bajo
+# cuenta como separador, porque los IDs de RP son del tipo RP_P3_303 o RP_S302_Center.
+_ROOM_CODE = re.compile(r'(?<![0-9])S?([1-4]0[1-3])(?![0-9])')
+
+# Palabras que identifican un punto de circulación: nunca representa la posición de un aula.
+_NON_ROOM_KEYWORDS = ("hall", "pasillo", "pasadizo", "corredor", "escalera", "stairs", "vestibul", "ascensor")
+
+
 def infer_room_id(rp_id: str, floor_number: Optional[int] = None, label: str = "") -> Optional[str]:
-    """Infiere el ID canónico de aula (ej. S303, S302) a partir del ID del RP o de su etiqueta."""
-    text = f"{rp_id} {label}".upper()
-    # Coincidencia directa con formato S303, S101
-    m = re.search(r'\bS([1-4]0[1-3])\b', text)
-    if m:
-        return f"S{m.group(1)}"
-    # Coincidencia con número de salón de 3 dígitos (ej. 303, 302, 101)
-    m2 = re.search(r'\b([1-4]0[1-3])\b', text)
-    if m2:
-        return f"S{m2.group(1)}"
-    # Coincidencia con subpatrón como P3_303 o RP_P3_303
-    m3 = re.search(r'(?:P|PISO\s*)?([1-4])_?0?([1-3])', text)
-    if m3:
-        return f"S{m3.group(1)}0{m3.group(2)}"
-    if floor_number and 1 <= floor_number <= 4:
-        m4 = re.search(r'\b0?([1-3])\b', rp_id)
-        if m4:
-            return f"S{floor_number}0{m4.group(1)}"
+    """
+    Infiere el ID canónico de aula (ej. S303, S302) a partir del ID del RP o de su etiqueta.
+
+    Solo reconoce un código de aula completo. El patrón anterior aceptaba dos cifras sueltas y
+    leía el punto de pasillo `RP_P3_Hall_12`, o la coordenada "12.9m" de la etiqueta que genera
+    la app, como el aula S102. Un código cuyo piso no coincide con el del RP se descarta.
+    """
+    for text in (rp_id, label):
+        for m in _ROOM_CODE.finditer((text or "").upper()):
+            code = m.group(1)
+            if floor_number and int(code[0]) != floor_number:
+                continue
+            return f"S{code}"
     return None
+
+
+def resolve_rp_room_id(
+    rp_id: str,
+    floor_number: Optional[int] = None,
+    label: str = "",
+    declared_room_id: Optional[str] = None,
+) -> Optional[str]:
+    """
+    Aula cuya posición representa un RP, o None si el punto no debe mover ningún aula.
+
+    La app envía como `room_id` el aula destino configurada en TODOS los puntos que calibra,
+    también en los de pasillo y escalera; aceptarlo sin más movía esa aula a cada punto del
+    recorrido. Por eso se descartan los puntos de circulación (por su ID o su etiqueta) y los de
+    un piso distinto al del aula, aunque traigan un `room_id` declarado.
+    """
+    text = f"{rp_id} {label}".lower()
+    if any(keyword in text for keyword in _NON_ROOM_KEYWORDS):
+        return None
+
+    room_id = declared_room_id or infer_room_id(rp_id, floor_number, label)
+    if not room_id:
+        return None
+
+    room_floor = re.fullmatch(r"S([1-4])0[1-3]", room_id)
+    if floor_number and room_floor and int(room_floor.group(1)) != floor_number:
+        return None
+    return room_id

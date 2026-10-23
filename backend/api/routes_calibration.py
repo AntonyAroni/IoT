@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
 from ..domain.building import Point2D
 from ..domain.fingerprint import ReferencePoint, RadioMapEntry
-from ..domain.graph import infer_room_id
+from ..domain.graph import resolve_rp_room_id
 from ..repositories.base import IRadioMapRepository
 
 router = APIRouter(prefix="/api/v1/calibration", tags=["Calibration"])
@@ -37,7 +37,7 @@ def record_calibration_point(
 ) -> Dict[str, Any]:
     """Registra o actualiza una huella de calibración para un Punto de Referencia."""
     from ..main import app_state
-    resolved_room_id = payload.room_id or infer_room_id(payload.rp_id, payload.floor_number, payload.label)
+    resolved_room_id = resolve_rp_room_id(payload.rp_id, payload.floor_number, payload.label, payload.room_id)
 
     rp = ReferencePoint(
         id=payload.rp_id,

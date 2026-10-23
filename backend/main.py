@@ -13,7 +13,7 @@ from fastapi.responses import RedirectResponse, FileResponse
 from .config import config
 from .domain.building import Point2D
 from .domain.building_models import create_building_graph
-from .domain.graph import infer_room_id
+from .domain.graph import resolve_rp_room_id
 from .repositories.radio_map_repo import InMemoryRadioMapRepository
 from .repositories.attendance_repo import InMemoryAttendanceRepository
 from .repositories.device_repo import DeviceRegistry
@@ -88,7 +88,7 @@ class ApplicationState:
         modified_entries = False
         for entry in entries:
             rp = entry.reference_point
-            r_id = rp.room_id or infer_room_id(rp.id, rp.floor_number, rp.label)
+            r_id = resolve_rp_room_id(rp.id, rp.floor_number, rp.label, rp.room_id)
             if not r_id or r_id not in self.graph.nodes:
                 continue
 
