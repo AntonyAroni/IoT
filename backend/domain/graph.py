@@ -269,12 +269,15 @@ def resolve_rp_room_id(
     también en los de pasillo y escalera; aceptarlo sin más movía esa aula a cada punto del
     recorrido. Por eso se descartan los puntos de circulación (por su ID o su etiqueta) y los de
     un piso distinto al del aula, aunque traigan un `room_id` declarado.
+
+    Si el ID nombra un aula, ésa manda sobre la declarada: calibrando `RP_S302_Door` con el
+    destino en S303, la app declaraba S303 y la puerta de S303 acababa en la de S302.
     """
     text = f"{rp_id} {label}".lower()
     if any(keyword in text for keyword in _NON_ROOM_KEYWORDS):
         return None
 
-    room_id = declared_room_id or infer_room_id(rp_id, floor_number, label)
+    room_id = infer_room_id(rp_id, floor_number, label) or declared_room_id
     if not room_id:
         return None
 

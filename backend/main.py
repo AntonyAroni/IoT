@@ -92,7 +92,7 @@ class ApplicationState:
             if not r_id or r_id not in self.graph.nodes:
                 continue
 
-            if rp.room_id is None:
+            if rp.room_id != r_id:
                 rp.room_id = r_id
                 modified_entries = True
 

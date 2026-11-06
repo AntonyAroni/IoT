@@ -43,6 +43,10 @@ class TestResolveRpRoomId(unittest.TestCase):
     def test_declared_room_of_another_floor_is_ignored(self):
         self.assertIsNone(resolve_rp_room_id("RP_Mesa", 1, "Mesa", "S302"))
 
+    def test_room_named_in_the_id_wins_over_the_declared_one(self):
+        """Caso de campo: RP_S302_Door calibrado con el aula destino en S303."""
+        self.assertEqual(resolve_rp_room_id("RP_S302_Door", 3, "Punto Calibrado RP_S302_Door", "S303"), "S302")
+
     def test_declared_room_is_kept_for_a_room_point(self):
         """Un punto con nombre libre tomado dentro del aula sí representa al aula declarada."""
         self.assertEqual(resolve_rp_room_id("RP_Mesa_Profesor", 3, "Mesa", "S302"), "S302")
