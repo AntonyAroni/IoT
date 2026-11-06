@@ -117,6 +117,12 @@ class AttendanceConfig:
     # rompe si dos lecturas consecutivas se separan más de ese intervalo.
     minimum_dwell_seconds: float = 0.0
 
+    # Tiempo, en segundos, que un alumno ya confirmado debe pasar fuera del aula de forma
+    # continuada para marcarlo como "Salió del aula". La asistencia registrada se conserva.
+    # El margen absorbe lecturas sueltas mal ubicadas: con pocos puntos calibrados la posición
+    # oscila, y una sola lectura fuera no significa que el alumno se haya ido. 0 lo desactiva.
+    exit_grace_seconds: float = 60.0
+
     # Radios geométricos de decisión, en metros, medidos desde el centro del aula.
     # Antes estaban incrustados como literales en AttendanceTrackerService.
     classroom_radius_meters: float = 4.0      # Cubre el 100% de la huella del aula

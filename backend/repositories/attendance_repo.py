@@ -95,9 +95,9 @@ class InMemoryAttendanceRepository(IAttendanceRepository):
         if not self.storage_path:
             return
 
-        # Las confirmaciones son el dato que no se puede perder: se escriben de inmediato.
-        # El resto (telemetría de posición y RSSI) tolera el agrupamiento.
-        if record.status == AttendanceStatus.PRESENT_CONFIRMED:
+        # Las confirmaciones (y las salidas de quien ya confirmó) son el dato que no se puede
+        # perder: se escriben de inmediato. El resto (posición y RSSI) tolera el agrupamiento.
+        if record.status.counts_as_attended:
             self.flush()
             return
 

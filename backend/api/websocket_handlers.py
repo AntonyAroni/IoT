@@ -167,7 +167,7 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
     attendance_repo = app_state.attendance_repo
 
     from ..services.signal_filters import MultiBSSIDKalmanFilter, TrajectoryKinematicFilter2D
-    from ..domain.attendance import Student
+    from ..domain.attendance import Student, resolve_attendance_room
 
     # La validación va ANTES de reservar nada: los filtros se guardan en diccionarios del
     # estado global indexados por `student_id`, y la rama de rechazo retorna sin pasar por la
@@ -212,8 +212,19 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
             student_obj = attendance_repo.get_student(student_id)
             if not student_obj:
                 student_name = payload.get("student_name", f"Alumno {student_id}")
-                student_obj = Student(id=student_id, name=student_name, enrolled_room=target_room_id)
+                student_obj = Student(id=student_id, name=student_name, enrolled_room=target_room_id,
+                                      auto_registered=True)
                 attendance_repo.register_student(student_obj)
+
+            # La asistencia se evalúa en el aula asignada; el destino de la app solo guía la ruta.
+            attendance_room_id = resolve_attendance_room(
+                student_obj, target_room_id,
+                credential.enrolled_room if credential else None,
+                graph.nodes,
+            )
+            attendance_node = graph.get_node(attendance_room_id)
+            attendance_floor = attendance_node.floor_number if attendance_node else 3
+            attendance_center = attendance_node.position if attendance_node else Point2D(10.0, 2.0)
 
             # 0. Filtrado de Kalman 1D por BSSID para atenuar fluctuaciones por multi-trayecto.
             # `enable_kalman_filter` estaba declarado en la configuración pero no se consultaba
@@ -241,10 +252,6 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
             est_pos = trajectory_filter.filter_position(raw_est_pos, timestamp)
 
             # 3. Motor de Navegación y Pistas
-            target_node = graph.get_node(target_room_id)
-            target_floor = target_node.floor_number if target_node else 3
-            target_center = target_node.position if target_node else Point2D(10.0, 2.0)
-
             known_origin = route_origin_distance.get(target_room_id)
             route = nav_engine.compute_route(
                 detected_floor, est_pos, target_room_id,
@@ -263,15 +270,16 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
                 route.progress_percentage = 0.0
 
             # 4. Rastreo de Asistencia y Permanencia
-            # Buscar si alguna de las lecturas corresponde al AP del aula meta
-            room_ap_rssi = payload.get("room_ap_rssi")
+            # La app mide la potencia del AP de su destino: solo vale si coincide con el aula
+            # donde se evalúa la asistencia.
+            room_ap_rssi = payload.get("room_ap_rssi") if attendance_room_id == target_room_id else None
             record, status_changed, audit_msg = tracker.process_student_presence(
                 student_id=student_id,
                 detected_floor=detected_floor,
                 position=est_pos,
-                target_room_id=target_room_id,
-                target_room_floor=target_floor,
-                target_room_center=target_center,
+                target_room_id=attendance_room_id,
+                target_room_floor=attendance_floor,
+                target_room_center=attendance_center,
                 strongest_rssi_to_room_ap=room_ap_rssi
             )
 
@@ -287,12 +295,13 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
                 "progress_percentage": route.progress_percentage,
                 "distance_meters": route.total_distance_meters,
                 "has_arrived": route.has_arrived,
-                "attendance_status": record.status.value
+                "attendance_status": record.status.value,
+                "attendance_room_id": attendance_room_id
             }
             await websocket.send_text(json.dumps(mobile_feedback))
 
             # 6. Notificación reactiva a la Laptop del Salón si hubo cambio de estado o proximidad
-            dist_to_room = round(est_pos.distance_to(target_center), 2) if detected_floor == target_floor else 99.0
+            dist_to_room = round(est_pos.distance_to(attendance_center), 2) if detected_floor == attendance_floor else 99.0
             laptop_event = {
                 "event": "student_proximity",
                 "timestamp": timestamp,
@@ -306,9 +315,10 @@ async def ws_mobile_sensor(websocket: WebSocket, student_id: str):
                 "rssi_is_measured": record.rssi_is_measured,
                 "samples_in_window": record.samples_in_window,
                 "confirmed_at": record.confirmed_at,
+                "left_at": record.left_at,
                 "audit_message": audit_msg
             }
-            await manager.broadcast_to_room(target_room_id, laptop_event)
+            await manager.broadcast_to_room(attendance_room_id, laptop_event)
 
             # 7. Telemetría global para Administrador
             await manager.broadcast_admin({

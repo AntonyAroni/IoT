@@ -11,12 +11,42 @@ class AttendanceStatus(str, Enum):
     APPROACHING = "APPROACHING"           # RSSI en rango preliminar (zona informativa del radar: RSSI >= -70 dBm o <= 9 m del centro)
     AT_DOOR = "AT_DOOR"                   # Dentro del aula (RSSI >= -70 dBm Y <= 4 m del centro), iniciando ventana de permanencia
     PRESENT_CONFIRMED = "PRESENT_CONFIRMED" # Permanencia validada, asistencia confirmada
+    LEFT_ROOM = "LEFT_ROOM"               # Confirmado, pero lleva fuera del aula más del tiempo de gracia
+
+    @property
+    def counts_as_attended(self) -> bool:
+        """Salir del aula no borra la asistencia ya registrada: solo informa de la ausencia actual."""
+        return self in (AttendanceStatus.PRESENT_CONFIRMED, AttendanceStatus.LEFT_ROOM)
 
 @dataclass
 class Student:
     id: str                               # Ej. "EST_2026_01"
     name: str                             # Ej. "Antony Mendoza"
     enrolled_room: str                    # Aula donde le corresponde asistir hoy (ej. "S302")
+    # True si el servidor lo dio de alta solo, al conectarse un móvil desconocido. Su
+    # `enrolled_room` es entonces el primer destino que eligió en la app, no un aula asignada.
+    auto_registered: bool = False
+
+
+def resolve_attendance_room(
+    student: Optional["Student"],
+    target_room_id: str,
+    credential_room: Optional[str] = None,
+    known_rooms=(),
+) -> str:
+    """
+    Aula donde se evalúa la asistencia del alumno, independiente del destino de la app.
+
+    El destino lo elige el alumno y sirve para navegar: usarlo también para la asistencia hacía
+    que un destino mal puesto (S303 estando en la S302, prueba del 29/10) impidiera marcarla.
+    Manda el aula de la credencial del móvil, luego el aula asignada en el padrón y, solo si el
+    alumno no tiene ninguna, el destino.
+    """
+    if credential_room and credential_room in known_rooms:
+        return credential_room
+    if student and not student.auto_registered and student.enrolled_room in known_rooms:
+        return student.enrolled_room
+    return target_room_id
 
 @dataclass
 class AttendanceRecord:
@@ -30,6 +60,12 @@ class AttendanceRecord:
     # False cuando `last_rssi` no es una medición sino un valor derivado de la posición
     # estimada. La interfaz no debe presentar un valor calculado como si fuera medido.
     rssi_is_measured: bool = False
+
+    # Seguimiento tras la confirmación. `outside_since` es la primera lectura fuera del aula de
+    # la racha actual; `left_at`, el instante en que salió cuando esa racha superó el tiempo de
+    # gracia. Ambos vuelven a None si el alumno regresa.
+    outside_since: Optional[float] = None
+    left_at: Optional[float] = None
 
     # Marcas de tiempo de las lecturas que cumplen el criterio de aula y forman la racha actual.
     # Antes solo se guardaba un contador, que permite exigir "N lecturas seguidas" pero no
@@ -72,7 +108,9 @@ class AttendanceRecord:
             "samples_in_window": self.samples_in_window,
             "dwell_seconds": round(self.dwell_seconds, 1),
             "rssi_is_measured": self.rssi_is_measured,
-            "window_sample_times": self.window_sample_times
+            "window_sample_times": self.window_sample_times,
+            "outside_since": self.outside_since,
+            "left_at": self.left_at
         }
 
     @classmethod
@@ -100,5 +138,7 @@ class AttendanceRecord:
             confirmed_at=data.get("confirmed_at"),
             last_rssi=data.get("last_rssi"),
             rssi_is_measured=data.get("rssi_is_measured", False),
-            window_sample_times=list(sample_times)
+            window_sample_times=list(sample_times),
+            outside_since=data.get("outside_since"),
+            left_at=data.get("left_at")
         )

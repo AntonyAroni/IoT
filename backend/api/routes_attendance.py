@@ -21,13 +21,15 @@ def get_room_attendance(room_id: str, repo: IAttendanceRepository = Depends(get_
     students = repo.get_students_for_room(room_id)
 
     total_enrolled = len(students)
-    confirmed_count = sum(1 for r in records if r.status == AttendanceStatus.PRESENT_CONFIRMED)
+    confirmed_count = sum(1 for r in records if r.status.counts_as_attended)
+    left_count = sum(1 for r in records if r.status == AttendanceStatus.LEFT_ROOM)
     approaching_count = sum(1 for r in records if r.status in (AttendanceStatus.APPROACHING, AttendanceStatus.AT_DOOR))
 
     return {
         "room_id": room_id,
         "total_enrolled": total_enrolled,
         "present_confirmed": confirmed_count,
+        "left_room": left_count,
         "approaching": approaching_count,
         "attendance_rate_percent": round((confirmed_count / total_enrolled * 100) if total_enrolled > 0 else 0, 1),
         "records": [r.to_dict() for r in records]
@@ -40,6 +42,8 @@ def reset_room_attendance(room_id: str, repo: IAttendanceRepository = Depends(ge
     for r in records:
         r.status = AttendanceStatus.ABSENT
         r.confirmed_at = None
+        r.outside_since = None
+        r.left_at = None
         r.reset_window()
         r.last_rssi = None
         repo.save_record(r)

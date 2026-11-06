@@ -96,25 +96,6 @@ class AttendanceTrackerService:
         record.rssi_is_measured = rssi_is_measured
         record.last_seen = now
 
-        # Si ya fue confirmado previamente, mantener confirmado
-        if record.status == AttendanceStatus.PRESENT_CONFIRMED:
-            self.attendance_repo.save_record(record)
-            return record, False, None
-
-        # ------------------------------------------------------------------
-        # Caducidad de la ventana de permanencia
-        # ------------------------------------------------------------------
-        # La ventana exige N lecturas CONSECUTIVAS. Si entre dos lecturas transcurre más tiempo
-        # del permitido, la racha se rompe: de lo contrario el contador nunca expira y tres
-        # pasadas frente a la puerta en días distintos confirmarían la asistencia.
-        window_expired = (
-            record.samples_in_window > 0
-            and previous_last_seen > 0.0
-            and (now - previous_last_seen) > self.config.window_timeout_seconds
-        )
-        if window_expired:
-            record.reset_window()
-
         # ------------------------------------------------------------------
         # Evaluación de zonas
         # ------------------------------------------------------------------
@@ -140,6 +121,29 @@ class AttendanceTrackerService:
         is_in_approaching_zone = on_target_floor and (
             above_approaching_threshold or within_approaching_radius
         )
+
+        # Una asistencia confirmada no se pierde. A partir de ahí solo se sigue si el alumno
+        # continúa en el aula, para avisar al docente de quien se va antes de tiempo.
+        if record.status.counts_as_attended:
+            status_changed, audit_msg = self._track_after_confirmation(
+                record, now, is_in_classroom_zone, target_room_id
+            )
+            self.attendance_repo.save_record(record)
+            return record, status_changed, audit_msg
+
+        # ------------------------------------------------------------------
+        # Caducidad de la ventana de permanencia
+        # ------------------------------------------------------------------
+        # La ventana exige N lecturas CONSECUTIVAS. Si entre dos lecturas transcurre más tiempo
+        # del permitido, la racha se rompe: de lo contrario el contador nunca expira y tres
+        # pasadas frente a la puerta en días distintos confirmarían la asistencia.
+        window_expired = (
+            record.samples_in_window > 0
+            and previous_last_seen > 0.0
+            and (now - previous_last_seen) > self.config.window_timeout_seconds
+        )
+        if window_expired:
+            record.reset_window()
 
         status_changed = False
         audit_msg = None
@@ -218,3 +222,46 @@ class AttendanceTrackerService:
 
         self.attendance_repo.save_record(record)
         return record, status_changed, audit_msg
+
+    def _track_after_confirmation(
+        self,
+        record: AttendanceRecord,
+        now: float,
+        is_in_classroom_zone: bool,
+        target_room_id: str,
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Presente <-> Salió del aula, para un alumno con la asistencia ya confirmada.
+
+        Solo cuenta como salida una racha continuada fuera del aula de al menos
+        `exit_grace_seconds`; una lectura dentro la interrumpe. Así una posición mal estimada de
+        vez en cuando no marca como ido a quien sigue sentado.
+        """
+        grace = self.config.exit_grace_seconds
+        if grace <= 0:
+            return False, None
+
+        if is_in_classroom_zone:
+            record.outside_since = None
+            if record.status == AttendanceStatus.LEFT_ROOM:
+                away = now - record.left_at if record.left_at else 0.0
+                record.status = AttendanceStatus.PRESENT_CONFIRMED
+                record.left_at = None
+                return True, (
+                    f"↩️ REGRESÓ: {record.student_name} volvió a {target_room_id} "
+                    f"tras {away / 60:.0f} min fuera."
+                )
+            return False, None
+
+        if record.outside_since is None:
+            record.outside_since = now
+
+        if (record.status == AttendanceStatus.PRESENT_CONFIRMED
+                and now - record.outside_since >= grace):
+            record.status = AttendanceStatus.LEFT_ROOM
+            record.left_at = record.outside_since
+            return True, (
+                f"🚶 SALIÓ DEL AULA: {record.student_name} lleva {grace / 60:.0f} min o más "
+                f"fuera de {target_room_id}. Su asistencia sigue registrada."
+            )
+        return False, None

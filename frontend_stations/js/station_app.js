@@ -239,7 +239,8 @@ class StationDashboardApp {
         last_seen: data.timestamp,
         last_rssi: data.rssi,
         samples_in_window: data.samples_in_window,
-        confirmed_at: data.confirmed_at
+        confirmed_at: data.confirmed_at,
+        left_at: data.left_at
       };
       this.records.set(studentId, rec);
     }
@@ -253,6 +254,8 @@ class StationDashboardApp {
     rec.last_rssi = data.rssi;
     rec.samples_in_window = data.samples_in_window;
     if (data.confirmed_at) rec.confirmed_at = data.confirmed_at;
+    // left_at sí se sobrescribe con null: al regresar al aula la salida deja de estar vigente.
+    rec.left_at = data.left_at ?? null;
 
     // Actualizar Radar
     this.radar.updateTarget(studentId, data.student_name, data.status, data.rssi, data.distance_to_classroom);
@@ -287,7 +290,8 @@ class StationDashboardApp {
     let approaching = 0;
 
     this.records.forEach(r => {
-      if (r.status === 'PRESENT_CONFIRMED') confirmed++;
+      // Quien salió del aula ya registró su asistencia: sigue contando como presente.
+      if (r.status === 'PRESENT_CONFIRMED' || r.status === 'LEFT_ROOM') confirmed++;
       if (r.status === 'APPROACHING' || r.status === 'AT_DOOR') approaching++;
     });
 
@@ -372,6 +376,10 @@ class StationDashboardApp {
       } else if (r.status === 'PRESENT_CONFIRMED') {
         badgeClass = 'tag-present';
         badgeLabel = 'Presente ✓';
+      } else if (r.status === 'LEFT_ROOM') {
+        badgeClass = 'tag-left';
+        const leftAt = r.left_at ? new Date(r.left_at * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        badgeLabel = leftAt ? `Salió del aula (${leftAt})` : 'Salió del aula';
       }
 
       const timeStr = r.confirmed_at
@@ -685,6 +693,7 @@ class StationDashboardApp {
               r.status = 'ABSENT';
               r.last_rssi = null;
               r.confirmed_at = null;
+              r.left_at = null;
               r.samples_in_window = 0;
               this.radar.clearTarget(r.student_id);
             });

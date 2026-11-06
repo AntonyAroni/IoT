@@ -45,6 +45,8 @@ export class RadarWidget {
     // Normalizar distancia métrica o RSSI a radio visual (0 = centro del aula, 1 = borde exterior)
     if (status === 'PRESENT_CONFIRMED') {
       target.distanceNorm = 0.15; // Dentro del aula
+    } else if (status === 'LEFT_ROOM') {
+      target.distanceNorm = 0.65; // Confirmado, pero fuera del aula
     } else if (status === 'AT_DOOR') {
       target.distanceNorm = 0.35; // Umbral de puerta
     } else if (status === 'APPROACHING') {
@@ -132,6 +134,7 @@ export class RadarWidget {
       if (t.status === 'APPROACHING') color = '#3b82f6';
       if (t.status === 'AT_DOOR') color = '#f59e0b';
       if (t.status === 'PRESENT_CONFIRMED') color = '#10b981';
+      if (t.status === 'LEFT_ROOM') color = '#a855f7';
 
       // Pulso exterior
       ctx.beginPath();
