@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var etCoordX: EditText
     private lateinit var etCoordY: EditText
     private lateinit var spinnerFloor: Spinner
+    private lateinit var cbRecalibrate: CheckBox
 
     // Configuración y Persistencia
     private val prefs by lazy { getSharedPreferences("ips_config", Context.MODE_PRIVATE) }
@@ -78,6 +79,7 @@ class MainActivity : AppCompatActivity() {
     private var latestWifiReadings: List<WifiReading> = emptyList()
     // Marca de tiempo del escaneo del sistema al que pertenece `latestWifiReadings`.
     private var latestScanTimestampUs: Long = 0L
+    private var isAutoCapturing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,6 +129,7 @@ class MainActivity : AppCompatActivity() {
         etCoordX = findViewById(R.id.etCoordX)
         etCoordY = findViewById(R.id.etCoordY)
         spinnerFloor = findViewById(R.id.spinnerFloor)
+        cbRecalibrate = findViewById(R.id.cbRecalibrate)
 
         updateUserUI()
 
@@ -174,40 +177,27 @@ class MainActivity : AppCompatActivity() {
 
             // Enviar telemetría en vivo si el WebSocket está conectado
             wsClient?.sendScanVector(readingsMap, currentTargetRoomId, roomApRssi)
+
+            if (isAutoCapturing) captureAutoSample(readings, scanTimestampUs)
         }
 
         updateServerConnection()
 
+        // Un toque inicia la captura automática: cada escaneo NUEVO de Android aporta una
+        // muestra hasta llegar a 15. Pulsar 15 veces era inviable, porque Android repite la
+        // misma ráfaga hasta que vuelve a escanear y la app la rechazaba con razón.
         btnTakeSample.setOnClickListener {
-            if (latestWifiReadings.isEmpty()) {
-                Toast.makeText(this, "Escaneando redes Wi-Fi... espera un momento e intenta de nuevo.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val outcome = calibrator?.addSample(latestWifiReadings, latestScanTimestampUs)
-            if (outcome == null) {
+            if (calibrator == null) {
                 Toast.makeText(this, "Servicio de calibración no inicializado", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
-            // Una muestra rechazada significa que Android no ha hecho un escaneo nuevo todavía.
-            // Guardarla igualmente duplicaría la medición anterior y falsearía la huella.
-            if (!outcome.accepted) {
-                Toast.makeText(
-                    this,
-                    "Aún es la misma medición: Android no ha vuelto a escanear. Espera unos " +
-                        "segundos. Si tarda siempre ~30 s, desactiva la limitación de búsqueda " +
-                        "de Wi-Fi en Opciones de desarrollador.",
-                    Toast.LENGTH_LONG
-                ).show()
-                return@setOnClickListener
-            }
-
-            val count = outcome.count
-            tvSampleCounter.text = "Muestras recolectadas: $count / 15"
-            if (count >= 15) {
-                Toast.makeText(this, "¡15 muestras listas! Ya puedes presionar 'Enviar Huella'.", Toast.LENGTH_LONG).show()
+            if (isAutoCapturing) {
+                stopAutoCapture("Captura detenida")
             } else {
-                Toast.makeText(this, "Muestra $count / 15 registrada", Toast.LENGTH_SHORT).show()
+                isAutoCapturing = true
+                btnTakeSample.text = "Capturando… (toca para detener)"
+                tvSampleCounter.text = "Muestras recolectadas: ${calibrator?.sampleCount() ?: 0} / $SAMPLES_PER_POINT — quédate quieto"
+                if (latestWifiReadings.isNotEmpty()) captureAutoSample(latestWifiReadings, latestScanTimestampUs)
             }
         }
 
@@ -226,8 +216,8 @@ class MainActivity : AppCompatActivity() {
             // Las coordenadas son obligatorias: un punto de referencia sin posición real no
             // sirve para nada, ni para el WKNN ni para la validación. Antes estaban fijadas en
             // el código y las capturas de campo se guardaban todas en (10.0, 2.0).
-            val coordX = etCoordX.text.toString().trim().toFloatOrNull()
-            val coordY = etCoordY.text.toString().trim().toFloatOrNull()
+            val coordX = parseCoordinate(etCoordX.text.toString())
+            val coordY = parseCoordinate(etCoordY.text.toString())
             if (coordX == null || coordY == null) {
                 Toast.makeText(
                     this,
@@ -244,8 +234,20 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val posX = etCoordX.text.toString().trim().toFloatOrNull() ?: 10.0f
-            val posY = etCoordY.text.toString().trim().toFloatOrNull() ?: 2.0f
+            // Con pocas muestras la huella refleja un instante, no el sitio: los dos primeros
+            // puntos de campo llegaron con 1 y 2 muestras porque nada lo impedía.
+            val samples = cal.sampleCount()
+            if (samples < SAMPLES_PER_POINT) {
+                Toast.makeText(
+                    this,
+                    "Faltan muestras: $samples / $SAMPLES_PER_POINT. Toca 'Capturar' y espera.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
+            val posX = coordX
+            val posY = coordY
 
             val adminToken = etAdminToken.text.toString().trim()
             prefs.edit().putString("admin_token", adminToken).apply()
@@ -258,11 +260,15 @@ class MainActivity : AppCompatActivity() {
                     y = posY,
                     label = "Punto Calibrado $rpId (${posX}m, ${posY}m)",
                     roomId = currentTargetRoomId.ifEmpty { null },
-                    adminToken = adminToken
+                    adminToken = adminToken,
+                    deviceId = calibrationDeviceId(),
+                    replace = cbRecalibrate.isChecked
                 )
                 if (result.isSuccess) {
-                    tvSampleCounter.text = "Muestras recolectadas: 0 / 15"
-                    Toast.makeText(this@MainActivity, "✅ Calibración guardada en servidor ($posX m, $posY m)", Toast.LENGTH_LONG).show()
+                    tvSampleCounter.text = "Muestras recolectadas: 0 / $SAMPLES_PER_POINT"
+                    // Recalibrar es para un punto concreto: el siguiente vuelve a combinarse.
+                    cbRecalibrate.isChecked = false
+                    Toast.makeText(this@MainActivity, "✅ ${result.getOrNull()}", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(this@MainActivity, "❌ Error al subir: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
                 }
@@ -527,9 +533,48 @@ class MainActivity : AppCompatActivity() {
             ?.toDouble()
     }
 
+    private fun captureAutoSample(readings: List<WifiReading>, scanTimestampUs: Long) {
+        val outcome = calibrator?.addSample(readings, scanTimestampUs) ?: return
+        // Una ráfaga repetida (Android aún no ha vuelto a escanear) se ignora sin avisar: la
+        // siguiente nueva llegará sola.
+        if (!outcome.accepted) return
+        tvSampleCounter.text = "Muestras recolectadas: ${outcome.count} / $SAMPLES_PER_POINT — quédate quieto"
+        if (outcome.count >= SAMPLES_PER_POINT) {
+            stopAutoCapture("¡$SAMPLES_PER_POINT muestras listas! Ya puedes pulsar 'Enviar Huella'.")
+        }
+    }
+
+    private fun stopAutoCapture(message: String) {
+        isAutoCapturing = false
+        btnTakeSample.text = "Capturar Muestras RSSI (automático)"
+        tvSampleCounter.text = "Muestras recolectadas: ${calibrator?.sampleCount() ?: 0} / $SAMPLES_PER_POINT"
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    /**
+     * Coordenada en metros escrita por el usuario. Acepta coma o punto decimal: con el teclado en
+     * español el separador es la coma, y `toFloatOrNull` solo entiende el punto, así que "19,58"
+     * se rechazaba y el punto de calibración no llegaba a enviarse.
+     */
+    private fun parseCoordinate(text: String): Float? =
+        text.trim().replace(',', '.').toFloatOrNull()
+
+    /**
+     * Identificador estable del móvil para el radio-mapa, p. ej. "SM-A146M-3f9a2c".
+     * El modelo ayuda a reconocerlo en el servidor; el sufijo de ANDROID_ID distingue dos
+     * móviles del mismo modelo.
+     */
+    private fun calibrationDeviceId(): String {
+        val androidId = android.provider.Settings.Secure.getString(
+            contentResolver, android.provider.Settings.Secure.ANDROID_ID
+        ) ?: ""
+        return "${Build.MODEL.replace(' ', '-')}-${androidId.take(6)}".trimEnd('-')
+    }
+
     companion object {
         private const val DEFAULT_STUDENT_ID = "EST_08"
         private const val DEFAULT_ROOM_ID = "S302"
+        private const val SAMPLES_PER_POINT = 15
 
         /** Mismo alfabeto que valida el backend antes de aceptar el handshake del WebSocket. */
         private val IDENTIFIER_REGEX = Regex("^[A-Za-z0-9_-]{1,32}$")

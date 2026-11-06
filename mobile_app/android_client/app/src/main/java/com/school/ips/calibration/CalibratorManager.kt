@@ -45,6 +45,8 @@ class CalibratorManager(
 
     fun isReadyToUpload(): Boolean = collectedSamples.size >= targetSampleCount
 
+    fun sampleCount(): Int = collectedSamples.size
+
     fun reset() {
         collectedSamples.clear()
         lastAcceptedScanUs = 0L
@@ -57,7 +59,9 @@ class CalibratorManager(
         y: Float,
         label: String,
         roomId: String? = null,
-        adminToken: String = ""
+        adminToken: String = "",
+        deviceId: String = "",
+        replace: Boolean = false
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             // Calcular estadísticas (Media y Desviación Estándar por BSSID).
@@ -116,6 +120,10 @@ class CalibratorManager(
                 put("rssi_means", rssiMeans)
                 put("rssi_std", rssiStd)
                 put("sample_count", collectedSamples.size)
+                // El servidor combina las huellas de varios móviles por este identificador;
+                // reenviar desde el mismo móvil sustituye la suya.
+                if (deviceId.isNotEmpty()) put("device_id", deviceId)
+                put("replace", replace)
             }
 
             // Enviar POST HTTP al backend
@@ -142,7 +150,15 @@ class CalibratorManager(
             val responseCode = conn.responseCode
             if (responseCode in 200..299) {
                 reset()
-                Result.success("Punto $rpId calibrado y guardado exitosamente.")
+                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                val devices = JSONObject(body).optJSONArray("devices")?.length() ?: 1
+                Result.success("Punto $rpId guardado ($devices móvil(es) en el punto).")
+            } else if (responseCode == 409) {
+                // Mismo ID con otro piso u otra posición: el servidor explica qué hay guardado.
+                // Las muestras se conservan para reenviar tras corregir o marcar "Recalibrar".
+                val body = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+                val detail = runCatching { JSONObject(body).getString("detail") }.getOrDefault(body)
+                Result.failure(Exception(detail))
             } else if (responseCode == 401 || responseCode == 403) {
                 Result.failure(Exception(
                     "El servidor rechazó la subida (HTTP $responseCode). Revisa el token de " +
